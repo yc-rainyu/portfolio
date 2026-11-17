@@ -1,0 +1,186 @@
+---
+
+import type { Lang } from '../config/site';
+import { workPath } from '../lib/i18n';
+import type { Project, SkillGroup, SkillWeights } from '../lib/content';
+import { buildSkillMatrix } from '../lib/skills';
+
+interface Props {
+  lang: Lang;
+  groups: SkillGroup[];
+  projects: Project[];
+  weights: SkillWeights;
+}
+
+const { lang, groups, projects, weights } = Astro.props;
+const matrix = buildSkillMatrix(groups, projects, weights);
+let nextLine = 2;
+const numberedGroups = matrix.groups.map((group) => {
+  const start = nextLine++;
+  const rows = group.rows.map((row) => ({ ...row, line: nextLine++ }));
+  return { ...group, start, rows, end: nextLine++ };
+});
+const pad = (line: number) => String(line).padStart(2, '0');
+---
+
+<div class="skills-json" data-skills-code>
+  <p class="code__line" data-line="01"><span class="code__number" aria-hidden="true">01</span><span class="t-punct">{'{'}</span></p>
+  {
+    numberedGroups.map((group, g) => {
+      const comma = g < matrix.groups.length - 1 ? ',' : '';
+      return (
+        <details class="fold" open data-scroll-anchor={`skill-group-${group.id}`}>
+          <summary class="code__line" data-line={group.start}>
+            <span class="code__number" aria-hidden="true">{pad(group.start)}</span>
+            <span class="fold__arrow" aria-hidden="true" />
+            <span class="t-key">"{group.label}"</span>
+            <span class="t-punct" aria-hidden="true">: {'{'}</span>
+            <span class="fold__closed t-punct" aria-hidden="true">
+              {' '}
+              <span class="fold__count">{group.rows.length} items</span>
+              {' }'}
+              {comma}
+            </span>
+          </summary>
+          {group.rows.map((row, r) => (
+            <p class="code__line" style="--indent:2" data-line={row.line} data-scroll-anchor={`skill-${group.id}-${row.name}`}>
+              <span class="code__number" aria-hidden="true">{pad(row.line)}</span>
+              <span class="t-key">"{row.name}"</span>
+              <span class="t-punct" aria-hidden="true">: [</span>
+              {matrix.columns
+                .filter((_, i) => row.used[i])
+                .map((project, n) => (
+                  <>
+                    {n > 0 && <span class="t-punct" aria-hidden="true">, </span>}
+                    <span class="t-punct" aria-hidden="true">"</span>
+                    <a class="ref t-str" href={workPath(lang, project.slug)} aria-label={`${project.slug}（${project.title}）`}>
+                      {project.slug}
+                    </a>
+                    <span class="t-punct" aria-hidden="true">"</span>
+                  </>
+                ))}
+              <span class="t-punct" aria-hidden="true">{r < group.rows.length - 1 ? '],' : ']'}</span>
+            </p>
+          ))}
+          <p class="code__line" style="--indent:1" data-line={group.end}><span class="code__number" aria-hidden="true">{pad(group.end)}</span><span class="t-punct">{'}'}{comma}</span></p>
+        </details>
+      );
+    })
+  }
+  <p class="code__line" data-line={nextLine} data-active><span class="code__number" aria-hidden="true">{pad(nextLine)}</span><span class="t-punct">{'}'}</span></p>
+</div>
+
+<script>
+  for (const code of document.querySelectorAll<HTMLElement>('[data-skills-code]')) {
+    code.addEventListener('click', (event) => {
+      const target = event.target as HTMLElement;
+      if (target.closest('a')) return;
+      const line = target.closest<HTMLElement>('.code__line');
+      if (!line) return;
+      code.querySelector('[data-active]')?.removeAttribute('data-active');
+      line.setAttribute('data-active', '');
+    });
+  }
+</script>
+
+<style>
+  .code__line { position: relative; padding-inline-end: 0.5rem; overflow-wrap: anywhere; cursor: text; }
+  .code__number { position: absolute; left: 0; top: 0; width: 1.9rem; text-align: center; color: var(--muted); font-size: 0.6875rem; line-height: calc(1.85 * 0.8125rem); user-select: none; pointer-events: none; }
+  summary .code__number { top: 0.625rem; }
+  .code__line[data-active] { background: var(--surface); }
+  .code__line[data-active] > .code__number { color: var(--ink); }
+  .code__line[data-active]::after { content: ''; display: inline-block; width: 0.55em; height: 1.15em; margin-inline-start: 0.2em; vertical-align: text-bottom; background: var(--a); }
+  @media (prefers-reduced-motion: no-preference) {
+    .code__line[data-active]::after { animation: caret 1.1s steps(1) infinite; }
+  }
+  @keyframes caret { 50% { opacity: 0; } }
+
+  .skills-json {
+    display: none;
+  }
+
+  :global([data-theme='shachiku']) .skills-json {
+    display: block;
+    min-width: 0;
+    border-inline-start: var(--line-width) solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.85;
+  }
+
+  .t-key {
+    color: var(--a);
+  }
+
+  .t-str {
+    color: var(--b);
+  }
+
+  .t-punct {
+    color: var(--muted);
+  }
+
+  .skills-json p {
+    padding-inline-start: calc(2.5rem + var(--indent, 0) * 2ch);
+    overflow-wrap: anywhere;
+  }
+
+  .fold > summary {
+    display: block;
+    position: relative;
+
+    padding-block: 0.625rem;
+    padding-inline-start: calc(2.5rem + 2ch);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .fold > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .fold__arrow {
+    position: absolute;
+    left: 2.5rem;
+    top: 50%;
+    width: 0;
+    height: 0;
+    border-inline: 0.3em solid transparent;
+    border-top: 0.42em solid var(--muted);
+    transform: translateY(-30%);
+  }
+
+  .fold:not([open]) .fold__arrow {
+    transform: translateY(-30%) rotate(-90deg);
+  }
+
+  .fold > summary:hover .fold__arrow {
+    border-top-color: var(--ink);
+  }
+
+  .fold__closed {
+    display: none;
+  }
+
+  .fold:not([open]) .fold__closed {
+    display: inline;
+  }
+
+  .fold__count {
+    padding: 0 0.5em;
+    border: var(--line-width) solid var(--line);
+    background: var(--surface);
+    font-size: 0.75rem;
+  }
+
+  .ref {
+    position: relative;
+    text-decoration: none;
+  }
+
+  .ref:hover,
+  .ref:focus-visible {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+  }
+</style>

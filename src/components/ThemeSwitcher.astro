@@ -1,0 +1,271 @@
+---
+import { storageKeys, themes, type Theme } from '../config/site';
+import type { SiteCopy } from '../lib/content';
+
+interface Props {
+  copy: SiteCopy;
+  variant?: 'arc' | 'row';
+}
+
+const { copy, variant = 'arc' } = Astro.props;
+
+const icons: Record<Theme, string> = {
+  spring: [0, 72, 144, 216, 288]
+    .map((deg) => `<path transform="rotate(${deg} 12 12)" d="M12 11c-2-2.2-2-5 0-7.5 2 2.5 2 5.3 0 7.5Z"/>`)
+    .join(''),
+  summer:
+    '<circle cx="12" cy="8.5" r="3"/><path d="M3.5 16c1.4-1.2 2.8-1.2 4.2 0s2.9 1.2 4.3 0 2.8-1.2 4.2 0 2.9 1.2 4.3 0M3.5 20c1.4-1.2 2.8-1.2 4.2 0s2.9 1.2 4.3 0 2.8-1.2 4.2 0 2.9 1.2 4.3 0"/>',
+  autumn: '<path d="M12 15C9 13.2 5.5 11.5 4 7.5c2.5-2 5.5-2 8 0 2.5-2 5.5-2 8 0-1.5 4-5 5.7-8 7.5Zm0 0v6"/>',
+  winter: [0, 60, 120, 180, 240, 300]
+    .map((deg) => `<path transform="rotate(${deg} 12 12)" d="M12 12V3.2M9.7 5.4 12 7.7l2.3-2.3"/>`)
+    .join(''),
+  shachiku: '<path d="m8.5 8-4 4 4 4M15.5 8l4 4-4 4M13.5 6l-3 12"/>',
+};
+---
+
+<div class="theme-switcher" data-variant={variant} role="group" aria-label={copy.theme.label} data-theme-switcher data-storage-key={storageKeys.theme} data-expand-label={copy.theme.expand}>
+  {variant === 'arc' && (
+    <button type="button" class="theme-switcher__trigger" aria-expanded="false" aria-label={copy.theme.label} data-theme-trigger>
+      {themes.map((theme) => (
+        <span class="theme-switcher__current" data-current-theme={theme}>
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={icons[theme]} />
+        </span>
+      ))}
+    </button>
+  )}
+  <noscript>
+    <style is:inline>.theme-switcher__options { display: none !important; }</style>
+  </noscript>
+  <div class="theme-switcher__options" role="group" aria-label={copy.theme.label}>
+    <svg class="theme-switcher__arc" viewBox="0 0 144 244" fill="none" aria-hidden="true"><path d="M122 32a90 90 0 0 0 0 180" /></svg>
+    {themes.map((theme) => (
+      <button type="button" class="theme-switcher__btn" data-theme-value={theme} aria-pressed="false" aria-label={copy.theme.names[theme]} title={copy.theme.names[theme]}>
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={icons[theme]} />
+      </button>
+    ))}
+  </div>
+</div>
+
+<script>
+  import { captureReadingPosition, preserveReadingPosition } from '../lib/reading-position';
+  const root = document.documentElement;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const switchers = [...document.querySelectorAll<HTMLElement>('[data-theme-switcher]')];
+  const buttons = switchers.flatMap((s) => [...s.querySelectorAll<HTMLButtonElement>('[data-theme-value]')]);
+  const storageKey = switchers[0]?.dataset.storageKey ?? 'theme';
+  const closeHandlers = new Map<HTMLElement, (restore?: boolean) => void>();
+  let themeChange = 0;
+
+  const sync = () => {
+    const current = root.getAttribute('data-theme');
+    for (const s of switchers) {
+      const options = [...s.querySelectorAll<HTMLButtonElement>('[data-theme-value]')];
+      let slot = 0;
+      for (const button of options) {
+        const selected = button.dataset.themeValue === current;
+        button.setAttribute('aria-pressed', String(selected));
+        if (!selected) button.dataset.slot = String(slot++);
+      }
+      const trigger = s.querySelector<HTMLButtonElement>('[data-theme-trigger]');
+      const name = options.find((b) => b.dataset.themeValue === current)?.getAttribute('aria-label');
+      if (trigger && name) trigger.setAttribute('aria-label', `${name}，${s.dataset.expandLabel ?? ''}`);
+    }
+  };
+  const apply = (theme: string) => {
+    root.setAttribute('data-theme', theme);
+    sync();
+  };
+
+  for (const s of switchers) {
+    const trigger = s.querySelector<HTMLButtonElement>('[data-theme-trigger]');
+    const panel = s.querySelector<HTMLElement>('.theme-switcher__options')!;
+    if (!trigger) continue;
+    let timer: ReturnType<typeof setTimeout>;
+    const setOpen = (open: boolean, restore = false) => {
+      clearTimeout(timer);
+      trigger.setAttribute('aria-expanded', String(open));
+      panel.inert = !open;
+      if (restore) trigger.focus({ preventScroll: true });
+    };
+    closeHandlers.set(s, (restore = false) => setOpen(false, restore));
+    panel.inert = true;
+    s.dataset.ready = '';
+    trigger.addEventListener('click', (event) => {
+      const mouse = (event as PointerEvent).pointerType === 'mouse';
+      setOpen(mouse ? true : trigger.getAttribute('aria-expanded') !== 'true');
+    });
+    // Wait for pointer selection before collapsing the panel
+    let pressing = false;
+    s.addEventListener('pointerdown', () => { pressing = true; });
+    document.addEventListener('pointerup', () => setTimeout(() => { pressing = false; }, 0));
+    document.addEventListener('pointercancel', () => { pressing = false; });
+    s.addEventListener('pointerenter', (event) => {
+      if (event.pointerType === 'mouse') setOpen(true);
+    });
+    s.addEventListener('pointerleave', (event) => {
+      if (event.pointerType === 'mouse' && !s.contains(document.activeElement)) timer = setTimeout(() => setOpen(false), 160);
+    });
+    s.addEventListener('focusout', (event) => {
+      if (pressing) return;
+      const next = event.relatedTarget as Node | null;
+      if (!next || !s.contains(next)) setOpen(false);
+    });
+    s.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        event.preventDefault();
+        setOpen(false, true);
+      }
+      if (!['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+      event.preventDefault();
+      setOpen(true);
+      const options = [...panel.querySelectorAll<HTMLButtonElement>('[data-theme-value]')].filter((b) => b.getAttribute('aria-pressed') !== 'true');
+      const index = options.indexOf(document.activeElement as HTMLButtonElement);
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1 : index < 0 ? 0 : (index + (['ArrowLeft', 'ArrowUp'].includes(event.key) ? -1 : 1) + options.length) % options.length;
+      options[next]?.focus({ preventScroll: true });
+    });
+    document.addEventListener('pointerdown', (event) => {
+      if (!s.contains(event.target as Node)) setOpen(false);
+    });
+  }
+
+  for (const button of buttons) {
+    button.addEventListener('click', () => {
+      const theme = button.dataset.themeValue;
+      const s = button.closest<HTMLElement>('[data-theme-switcher]')!;
+      const position = captureReadingPosition();
+      closeHandlers.get(s)?.(true);
+      if (!theme || theme === root.getAttribute('data-theme')) return;
+      try { localStorage.setItem(storageKey, theme); } catch {  }
+      try { sessionStorage.setItem(storageKey, theme); } catch {  }
+      try {
+        const url = new URL(location.href);
+        url.searchParams.set('theme', theme);
+        history.replaceState(history.state, '', url);
+      } catch {  }
+      const change = ++themeChange;
+      const update = () => {
+        if (change === themeChange) preserveReadingPosition(position, () => apply(theme));
+      };
+      if (!reduceMotion.matches && typeof document.startViewTransition === 'function') {
+        document.startViewTransition(update);
+      } else {
+        update();
+      }
+    });
+  }
+  sync();
+  new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+</script>
+
+<style>
+  .theme-switcher { position: relative; color: var(--muted); }
+  .theme-switcher__options { display: flex; }
+  .theme-switcher__trigger, .theme-switcher__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .theme-switcher__trigger { display: none; color: var(--accent-text); }
+  .theme-switcher__current { display: none; }
+  .theme-switcher__arc { display: none; }
+  .theme-switcher__btn:hover { color: var(--ink); }
+  .theme-switcher__btn[aria-pressed='true'] { color: var(--accent-text); }
+  .theme-switcher__btn[aria-pressed='true'] > svg { border-bottom: 1px solid currentColor; }
+  .theme-switcher :is(button, a):focus-visible { outline: 2px solid var(--accent-text); outline-offset: 3px; }
+
+  :global([data-theme='spring']) [data-current-theme='spring'] { display: inline-flex; }
+  :global([data-theme='summer']) [data-current-theme='summer'] { display: inline-flex; }
+  :global([data-theme='autumn']) [data-current-theme='autumn'] { display: inline-flex; }
+  :global([data-theme='winter']) [data-current-theme='winter'] { display: inline-flex; }
+  :global([data-theme='shachiku']) [data-current-theme='shachiku'] { display: inline-flex; }
+  [data-variant='arc'] .theme-switcher__options { flex-direction: column; background: var(--card); }
+  [data-variant='arc'][data-ready] { width: 44px; height: 44px; z-index: 1; }
+  [data-variant='arc'][data-ready] .theme-switcher__trigger { display: inline-flex; }
+  [data-variant='arc'][data-ready] .theme-switcher__trigger { position: relative; z-index: 1; }
+  [data-variant='arc'][data-ready] .theme-switcher__options {
+    position: absolute;
+    top: -100px;
+    left: -100px;
+    width: 144px;
+    height: 244px;
+    background: transparent;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  [data-variant='arc'][data-ready]:has([aria-expanded='true']) .theme-switcher__options {
+    visibility: visible;
+    pointer-events: auto;
+  }
+  [data-variant='arc'][data-ready] .theme-switcher__arc {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 144px;
+    height: 244px;
+    stroke: var(--line);
+    pointer-events: none;
+  }
+  [data-variant='arc'][data-ready] .theme-switcher__btn {
+    position: absolute;
+    left: 100px;
+    top: 10px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    opacity: 0;
+    transform: translate(var(--home-x, 0px), var(--home-y, 90px)) scale(.8);
+    transition: transform 180ms ease-out, opacity 180ms ease-out;
+  }
+  [data-variant='arc'][data-ready] .theme-switcher__btn[aria-pressed='true'] { display: none; }
+  [data-variant='arc'][data-ready] .theme-switcher__btn[data-slot='1'] { left: 22px; top: 55px; --home-x: 78px; --home-y: 45px; }
+  [data-variant='arc'][data-ready] .theme-switcher__btn[data-slot='2'] { left: 22px; top: 145px; --home-x: 78px; --home-y: -45px; }
+  [data-variant='arc'][data-ready] .theme-switcher__btn[data-slot='3'] { top: 190px; --home-y: -90px; }
+  [data-variant='arc'][data-ready]:has([aria-expanded='true']) .theme-switcher__btn {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+    transition-delay: 0ms;
+  }
+  [data-variant='arc'][data-ready]:has([aria-expanded='true']) [data-slot='1'] { transition-delay: 30ms; }
+  [data-variant='arc'][data-ready]:has([aria-expanded='true']) [data-slot='2'] { transition-delay: 60ms; }
+  [data-variant='arc'][data-ready]:has([aria-expanded='true']) [data-slot='3'] { transition-delay: 90ms; }
+  [data-variant='arc'][data-ready] .theme-switcher__btn::after {
+    content: '';
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--preview);
+  }
+  [data-variant='arc'] .theme-switcher__trigger {
+    border: 1px solid var(--line);
+    background: var(--card);
+  }
+  :global([data-theme='shachiku']) [data-variant='arc'] :is(button, a) { border-radius: 0; }
+  [data-theme-value='spring'] { --preview: var(--dot-spring); }
+  [data-theme-value='summer'] { --preview: var(--dot-summer); }
+  [data-theme-value='autumn'] { --preview: var(--dot-autumn); }
+  [data-theme-value='winter'] { --preview: var(--dot-winter); }
+  [data-theme-value='shachiku'] { --preview: var(--dot-shachiku); }
+  [data-variant='arc'] .theme-switcher__trigger,
+  [data-variant='arc'][data-ready] .theme-switcher__btn {
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--deep) 22%, transparent);
+  }
+  [data-variant='arc'] .theme-switcher__trigger { transition: transform 160ms ease-out; }
+  [data-variant='arc'] .theme-switcher__trigger:hover { transform: scale(1.1); }
+  [data-variant='arc'][data-ready]:has([aria-expanded='true']) .theme-switcher__btn:hover { transform: translate(0, 0) scale(1.12); }
+  @media (prefers-reduced-motion: reduce) {
+    [data-variant='arc'][data-ready] .theme-switcher__btn,
+    [data-variant='arc'] .theme-switcher__trigger { transition: none; }
+  }
+</style>

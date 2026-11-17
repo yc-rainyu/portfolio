@@ -1,0 +1,51 @@
+---
+import type { Project, SiteCopy } from '../lib/content';
+
+interface Props {
+  project: Project;
+  copy: SiteCopy;
+}
+
+const { project, copy } = Astro.props;
+const kinds = ['live', 'github', 'demo'] as const;
+const links = kinds.flatMap((kind) => {
+  const href = project.links[kind];
+  return href ? [{ kind, href, label: copy.work.links[kind] }] : [];
+});
+---
+
+{
+  links.length > 0 && (
+    <ul class="actions">
+      {links.map((link) => (
+        <li>
+          <a class="btn" href={link.href} target="_blank" rel="noopener">
+            <span class="link-label">{link.label}</span><span class="source-url">]({link.href})</span>
+            <span class="visually-hidden">：{project.title}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+<style>
+  .source-url {
+    display: none;
+  }
+  :global([data-theme="shachiku"]) .btn {
+    padding: 0.4rem 0;
+    border: 0;
+    color: var(--b);
+    flex-wrap: wrap;
+    justify-content: start;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+  :global([data-theme="shachiku"]) .link-label::before {
+    content: "[";
+  }
+  :global([data-theme="shachiku"]) .source-url {
+    display: inline;
+  }
+</style>

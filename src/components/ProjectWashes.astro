@@ -1,0 +1,25 @@
+<div class="project-washes" aria-hidden="true">
+  <span class="project-washes__hero" />
+  <span class="project-washes__body" />
+</div>
+
+<style>
+  .project-washes { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+  .project-washes span { position: absolute; border-radius: 48% 52% 64% 36% / 57% 43% 57% 43%; }
+  .project-washes__hero {
+    width: min(90vw, 90rem); height: 68rem; right: -24%; top: -11rem;
+    transform: rotate(-15deg);
+    background: radial-gradient(ellipse at 58% 44%, color-mix(in srgb, var(--a-soft) 65%, transparent), color-mix(in srgb, var(--b-soft) 34%, transparent) 42%, transparent 72%);
+  }
+  .project-washes__body {
+    width: min(110vw, 85rem); height: 72rem; left: -36%; top: 44%;
+    transform: rotate(18deg);
+    background: radial-gradient(ellipse at 50% 46%, color-mix(in srgb, var(--b-soft) 42%, transparent), color-mix(in srgb, var(--a-soft) 18%, transparent) 40%, transparent 70%);
+  }
+  :global([data-theme='winter']) .project-washes { opacity: .24; }
+  :global([data-theme='shachiku']) .project-washes { display: none; }
+  @media (max-width: 767px) {
+    .project-washes__hero { width: 150vw; height: 46rem; right: -70%; top: -5rem; opacity: .75; }
+    .project-washes__body { width: 160vw; left: -95%; height: 48rem; opacity: .6; }
+  }
+</style>

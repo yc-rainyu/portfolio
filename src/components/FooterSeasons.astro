@@ -1,0 +1,131 @@
+---
+import { art, seededRandom, seasons, type Season } from '../lib/season-art';
+
+const pools: Record<Season, string[]> = {
+  spring: ['petal-01', 'petal-02'],
+  summer: ['maple-01', 'maple-02', 'maple-05'],
+  autumn: ['ginkgo-03', 'ginkgo-04', 'ginkgo-05'],
+  winter: [],
+};
+const groups = await Promise.all(seasons.map(async (season, index) => {
+  const random = seededRandom(20261116 + index * 151);
+  const images = await Promise.all(pools[season].map(name => art(season, name, 128)));
+  const particles = Array.from({ length: 48 }, (_, i) => {
+    const centre = i % 4 === 0 ? 18 : i % 4 === 1 ? 53 : 91;
+    const offset = (random() - .5) * 25;
+    const x = Math.min(98, Math.max(2, centre + offset));
+    const mound = 1 - Math.min(1, Math.abs(offset) / 12.5);
+    const size = season === 'winter' ? 4 + random() * 7 : 27 + random() * 31;
+    const image = images[i % images.length];
+    const style = [
+      `--x:${x}%`, `--size:${size}px`, `--lift:${random() * (season === 'winter' ? 9 : 12 + mound * 36)}px`,
+      `--angle:${random() * 310 - 155}deg`, `--drift:${random() * 100 - 50}px`,
+      `--delay:${i * .08 + random() * .8}s`, `--duration:${3.3 + random() * 2.4}s`,
+      `--alpha:${.6 + random() * .3}`,
+      ...(image ? [`--src:${image.src}`, `--ratio:${image.ratio}`] : []),
+    ].join(';');
+    return { style };
+  });
+  return { season, particles, image: images[0] };
+}));
+---
+
+<div class="season-stage" data-season-stage aria-hidden="true">
+  {groups.map(({ season, particles }) => (
+    <div class="season-group" data-season={season}>
+      {particles.map(({ style }, i) => <span class:list={['fallen', { 'mobile-hidden': i % 2 === 1 }]} style={style} />)}
+      {season === 'winter' && <span class="snow-bed" />}
+    </div>
+  ))}
+</div>
+<div class="scroll-leaf" data-scroll-leaf aria-hidden="true">
+  {groups.map(({ season, image }) => <span class="traveller" data-season={season} style={image ? `--src:${image.src};--ratio:${image.ratio}` : undefined} />)}
+</div>
+
+<script>
+  const stage = document.querySelector<HTMLElement>('[data-season-stage]');
+  const leaf = document.querySelector<HTMLElement>('[data-scroll-leaf]');
+  const container = document.querySelector<HTMLElement>('.site-footer .container');
+  if (stage && leaf) {
+    const motion = matchMedia('(prefers-reduced-motion: reduce)');
+    const desktop = matchMedia('(min-width: 768px)');
+    const root = document.documentElement;
+    let visible = false;
+    let frame = 0;
+    const active = () => !motion.matches && root.dataset.theme !== 'shachiku';
+    const update = () => {
+      frame = 0;
+      stage.dataset.running = String(visible && active());
+      if (!active() || !desktop.matches) {
+        leaf.style.setProperty('--visibility', '0');
+        return;
+      }
+      const height = innerHeight;
+      const rect = stage.getBoundingClientRect();
+      const stageTop = rect.top + scrollY;
+      const start = height * .55;
+      const end = Math.max(start + 1, stageTop - height * .7);
+      const progress = Math.max(0, Math.min(1, (scrollY - start) / (end - start)));
+      const landing = Math.max(0, Math.min(1, (height - rect.top) / Math.max(1, rect.height)));
+      const box = container?.getBoundingClientRect();
+      const contentRight = box ? box.right - parseFloat(getComputedStyle(container!).paddingRight) : innerWidth - 64;
+      const gutter = innerWidth - contentRight;
+      const sway = Math.max(0, Math.min(12, (gutter - 60) / 2));
+      const x = contentRight + gutter / 2 - 22 + Math.sin(progress * Math.PI * 2) * sway;
+      const cruisingY = height * (.24 + progress * .36);
+      const targetY = rect.bottom - 36;
+      const y = cruisingY + (targetY - cruisingY) * landing;
+      const opacity = Math.min(1, progress * 12) * (1 - Math.max(0, (landing - .78) / .22));
+      leaf.style.setProperty('--pose', `translate3d(${x}px, ${y}px, 0) rotate(${Math.sin(progress * Math.PI * 2) * 28 + landing * 75}deg)`);
+      leaf.style.setProperty('--visibility', String(opacity * .65));
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      stage.dataset.running = String(visible && active());
+      schedule();
+    });
+    observer.observe(stage);
+    new MutationObserver(schedule).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+    new ResizeObserver(schedule).observe(document.body);
+    addEventListener('scroll', schedule, { passive: true });
+    addEventListener('resize', schedule, { passive: true });
+    motion.addEventListener('change', schedule);
+    desktop.addEventListener('change', schedule);
+    schedule();
+  }
+</script>
+
+<style>
+  .season-stage { height: clamp(9rem, 20vw, 15rem); position: relative; overflow: hidden; pointer-events: none; }
+  .season-group { display: none; position: absolute; inset: 0; }
+  .fallen { position: absolute; left: var(--x); bottom: var(--lift); width: var(--size); aspect-ratio: var(--ratio, 1); background: var(--src) center / contain no-repeat; opacity: 0; animation: settle var(--duration) var(--delay) ease-in-out both; animation-play-state: paused; }
+  [data-running='true'] .fallen, [data-running='true'] .snow-bed { animation-play-state: running; }
+  @keyframes settle {
+    0% { opacity: 0; transform: translate(calc(-50% + var(--drift)), -260px) rotate(calc(var(--angle) - 100deg)); }
+    12% { opacity: var(--alpha); }
+    55% { transform: translate(calc(-50% - var(--drift) * .4), -100px) rotate(calc(var(--angle) + 35deg)); }
+    100% { opacity: var(--alpha); transform: translate(-50%, 0) rotate(var(--angle)); }
+  }
+  .snow-bed { position: absolute; inset: auto -2% -6px; height: 19px; border-radius: 50% 65% 0 0; background: var(--snow, var(--b-soft)); opacity: 0; animation: snow-cover 9s 1s linear both paused; }
+  @keyframes snow-cover { from { opacity: 0; transform: scaleY(.1); } to { opacity: .85; transform: scaleY(1); } }
+  [data-season='winter'] .fallen, .traveller[data-season='winter'] { background: var(--snow, var(--b-soft)); border-radius: 50%; aspect-ratio: 1; }
+  .scroll-leaf { position: fixed; top: 0; left: 0; width: 44px; height: 48px; z-index: 10; pointer-events: none; transform: var(--pose, translate3d(0, -100px, 0)); opacity: var(--visibility, 0); }
+  .traveller { display: none; width: 100%; aspect-ratio: var(--ratio, 1); background: var(--src) center / contain no-repeat; }
+  .traveller[data-season='winter'] { width: 9px; }
+  :global([data-theme='spring']) [data-season='spring'],
+  :global([data-theme='summer']) [data-season='summer'],
+  :global([data-theme='autumn']) [data-season='autumn'],
+  :global([data-theme='winter']) [data-season='winter'] { display: block; }
+  :global([data-theme='shachiku']) .season-stage,
+  :global([data-theme='shachiku']) .scroll-leaf { display: none; }
+  @media (max-width: 767px) {
+    .season-stage { height: 9rem; }
+    .mobile-hidden, .scroll-leaf { display: none !important; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-leaf { display: none; }
+    .fallen { animation: none; opacity: var(--alpha); transform: translate(-50%, 0) rotate(var(--angle)); }
+    .snow-bed { animation: none; opacity: .85; }
+  }
+</style>

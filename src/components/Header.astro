@@ -1,0 +1,359 @@
+---
+import ThemeSwitcher from './ThemeSwitcher.astro';
+import LangSwitcher from './LangSwitcher.astro';
+import type { Lang } from '../config/site';
+import { homePath } from '../lib/i18n';
+import { sections } from '../lib/sections';
+import type { SiteCopy } from '../lib/content';
+
+interface Props {
+  lang: Lang;
+  copy: SiteCopy;
+}
+
+const { lang, copy } = Astro.props;
+const home = homePath(lang);
+
+const items = sections.map((section) => ({ ...section, label: copy.nav[section.id] }));
+---
+
+<div class="header-sentinel" data-header-sentinel aria-hidden="true"></div>
+
+<header class="site-header" data-header>
+  <div class="site-header__bar">
+    <div class="container site-header__inner">
+      <a class="site-header__logo" href={home} aria-label={`${copy.nav.logo} ${copy.nav.home}`}>{copy.nav.logo}</a>
+
+      <div class="site-header__capsule">
+        <nav class="site-header__nav" aria-label={copy.nav.label}>
+          <ul>
+            {
+              items.map((s) => (
+                <li>
+                  <a href={`${home}#${s.id}`}>
+                    <span class="nav-text">{s.label}</span>
+                    <span class="nav-file">{s.file}</span>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+        <LangSwitcher lang={lang} copy={copy} />
+      </div>
+
+      <div class="site-header__compact">
+        <LangSwitcher lang={lang} copy={copy} />
+        <details class="menu" data-menu>
+          <summary class="menu__toggle">
+            <span class="visually-hidden">{copy.nav.menu}</span>
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+              <path class="menu__icon-open" d="M4 8h16M4 16h16"></path>
+              <path class="menu__icon-close" d="m6 6 12 12M18 6 6 18"></path>
+            </svg>
+          </summary>
+          <div class="menu__panel">
+            <nav aria-label={copy.nav.label}>
+              <ul class="menu__links">
+                {
+                  items.map((s) => (
+                    <li>
+                      <a href={`${home}#${s.id}`}>
+                        <span class="nav-text">{s.label}</span>
+                        <span class="nav-file">{s.file}</span>
+                      </a>
+                    </li>
+                  ))
+                }
+              </ul>
+            </nav>
+            <ThemeSwitcher copy={copy} variant="row" />
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+  <div class="site-header__theme">
+    <ThemeSwitcher copy={copy} />
+  </div>
+</header>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  const sentinel = document.querySelector<HTMLElement>('[data-header-sentinel]');
+  if (header && sentinel) {
+    new IntersectionObserver(([entry]) => {
+      header.toggleAttribute('data-scrolled', !(entry?.isIntersecting ?? true));
+    }).observe(sentinel);
+  }
+
+  for (const menu of document.querySelectorAll<HTMLDetailsElement>('[data-menu]')) {
+    menu.addEventListener('click', (event) => {
+      if ((event.target as HTMLElement).closest('a')) menu.open = false;
+    });
+    menu.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && menu.open) {
+        menu.open = false;
+        menu.querySelector('summary')?.focus();
+      }
+    });
+  }
+</script>
+
+<style>
+  .header-sentinel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 3rem;
+    pointer-events: none;
+  }
+
+  /* Keep the header height stable during scrolling */
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: var(--header-h);
+    pointer-events: none;
+  }
+
+  .site-header__bar {
+    pointer-events: auto;
+    border-bottom: var(--line-width) solid transparent;
+    transition:
+      background-color 0.3s ease,
+      border-color 0.3s ease;
+  }
+
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    height: var(--header-h);
+    transition: height 0.3s ease;
+  }
+
+  .site-header[data-scrolled] .site-header__bar {
+    border-bottom-color: var(--line);
+    background:
+      linear-gradient(100deg, color-mix(in srgb, var(--a-soft) 26%, transparent), transparent 22%),
+      color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+  }
+
+  .site-header[data-scrolled] .site-header__inner {
+    height: calc(var(--header-h) - 1rem);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-header__bar,
+    .site-header__inner {
+      transition: none;
+    }
+  }
+
+  .site-header__logo {
+    display: inline-flex;
+    align-items: center;
+    min-width: var(--hit);
+    min-height: var(--hit);
+    color: var(--ink);
+    font-family: var(--font-label);
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-decoration: none;
+  }
+
+
+  .site-header__theme {
+    display: none;
+    position: fixed;
+    top: 33vh;
+    right: 0.5rem;
+    width: 44px;
+    transform: translateY(-50%);
+    pointer-events: auto;
+  }
+
+  .site-header__capsule {
+    display: none;
+    align-items: center;
+    gap: 1rem;
+    margin-inline-start: auto;
+    padding-inline: 1rem 0.25rem;
+    border: var(--line-width) solid var(--line);
+    border-radius: 999px;
+    background: var(--bg);
+  }
+
+  .site-header__nav ul {
+    display: flex;
+    gap: 1.25rem;
+    margin-inline-end: 0;
+  }
+
+  .site-header__nav a,
+  .menu__links a {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--hit);
+    color: var(--ink);
+    font-size: 0.875rem;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .site-header__nav a:hover,
+  .menu__links a:hover {
+    color: var(--accent-text);
+  }
+
+  .nav-file {
+    display: none;
+  }
+
+
+  .site-header__compact {
+    display: flex;
+    align-items: center;
+    margin-inline-start: auto;
+    padding-inline-start: 0.5rem;
+    border: var(--line-width) solid var(--line);
+    border-radius: 999px;
+    background: var(--bg);
+  }
+
+  :global([data-theme='shachiku']) .site-header__compact {
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .menu__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--hit);
+    height: var(--hit);
+    color: var(--ink);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .menu__toggle::-webkit-details-marker {
+    display: none;
+  }
+
+  .menu__icon-close,
+  .menu[open] .menu__icon-open {
+    display: none;
+  }
+
+  .menu[open] .menu__icon-close {
+    display: block;
+  }
+
+  .menu__panel {
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    display: grid;
+    gap: 0.75rem;
+    padding: 0.75rem var(--gutter) 1rem;
+    border-block: var(--line-width) solid var(--line);
+    background: var(--bg);
+  }
+
+  .site-header__bar {
+    position: relative;
+  }
+
+  .menu__links {
+    display: grid;
+  }
+
+  .menu__links a {
+    width: 100%;
+    font-size: 1rem;
+  }
+
+  @media (min-width: 1024px) {
+    .site-header__theme {
+      display: block;
+    }
+    .site-header__capsule {
+      display: flex;
+    }
+
+    .site-header__compact {
+      display: none;
+    }
+  }
+
+
+  :global([data-theme='shachiku']) .site-header__bar {
+    border-bottom-color: var(--line);
+    background: var(--surface);
+    backdrop-filter: none;
+  }
+
+  :global([data-theme='shachiku']) .site-header__capsule {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    gap: 0.5rem;
+    align-self: stretch;
+  }
+
+  :global([data-theme='shachiku']) .site-header__nav,
+  :global([data-theme='shachiku']) .site-header__nav ul {
+    height: 100%;
+  }
+
+  :global([data-theme='shachiku']) .site-header__nav ul {
+    gap: 0;
+    margin-inline-end: 0;
+    border-inline-start: var(--line-width) solid var(--line);
+  }
+
+  :global([data-theme='shachiku']) .site-header__nav a {
+    height: 100%;
+    padding-inline: 1rem;
+    border-inline-end: var(--line-width) solid var(--line);
+    border-top: 2px solid transparent;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  :global([data-theme='shachiku']) .site-header__nav a:hover {
+    border-top-color: var(--a);
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  :global([data-theme='shachiku']) .nav-file {
+    display: inline;
+  }
+
+  :global([data-theme='shachiku']) .nav-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  :global([data-theme='shachiku']) .menu__links a {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+  }
+
+  :global([data-theme='shachiku']) .menu__panel {
+    background: var(--surface);
+  }
+</style>

@@ -1,0 +1,142 @@
+# Weights describe project usage rather than proficiency
+# Unlisted technologies use weight 3
+# Practices may be assigned without a stack entry
+ai-agent-office:
+  Claude Code: 5
+  Codex CLI: 5
+  Node.js: 3
+  SQLite: 3
+  SSE: 3
+  React: 4
+  Phaser: 5
+  Bash: 3
+  Git worktrees: 2
+  code review: 4
+  technical documentation: 3
+
+cross-game-bot-detection:
+  Python: 5
+  pandas: 4
+  NumPy: 4
+  scikit-learn: 5
+  PyTorch: 4
+  Jupyter: 1
+  technical documentation: 3
+
+designer-ui-library:
+  HTML: 5
+  CSS: 3
+  JavaScript: 4
+  code review: 3
+
+esports-tournament-platform:
+  Vue.js: 5
+  Vuex: 4
+  REST API: 3
+  SCSS: 4
+  Agile/Scrum: 3
+  Jira: 2
+  code review: 2
+
+game-chat-room:
+  Vue.js: 5
+  WebSocket: 4
+  Agile/Scrum: 2
+  Jira: 3
+  code review: 3
+
+government-websites:
+  HTML: 5
+  CSS: 5
+
+job-sponsor-tracker:
+  Python: 5
+  SQL: 4
+  FastAPI: 4
+  Pydantic: 3
+  SQLAlchemy: 4
+  Alembic: 2
+  PostgreSQL: 5
+  pg_trgm: 4
+  Pytest: 3
+  Claude API: 2
+  Next.js: 4
+  TypeScript: 4
+  TanStack Query: 3
+  Tailwind CSS: 2
+  REST API: 3
+  Google OIDC: 2
+  JWT: 2
+  Playwright: 1
+  Docker: 2
+  Docker Compose: 3
+  Caddy: 2
+  AWS: 3
+  GitHub Actions: 2
+  Vercel: 1
+
+pixijs-lightning:
+  JavaScript: 5
+  PixiJS: 5
+  GSAP: 4
+  dat.GUI: 2
+  Agile/Scrum: 1
+  Jira: 1
+  code review: 2
+
+risk-management-system:
+  React: 5
+  TypeScript: 5
+  Ant Design: 4
+  GraphQL: 4
+  Apollo Client: 3
+  ECharts: 3
+  Vitest: 1
+  pnpm monorepo: 3
+  Agile/Scrum: 3
+  Jira: 2
+  code review: 4
+  technical documentation: 4
+
+spotclue:
+  Python: 5
+  SQL: 4
+  FastAPI: 4
+  Pydantic: 2
+  SQLAlchemy: 3
+  Alembic: 2
+  PostgreSQL: 4
+  PostGIS: 5
+  osm2pgsql: 3
+  scikit-learn: 4
+  ONNX Runtime: 4
+  Transformers.js (WebGPU): 5
+  React: 4
+  TypeScript: 4
+  Vite: 1
+  MapLibre GL: 4
+  REST API: 3
+  Pytest: 2
+  Vitest: 1
+  Playwright: 1
+  Docker: 2
+  Docker Compose: 3
+  GitHub Actions: 3
+
+the-f2e:
+  React: 4
+  Phaser: 3
+  JavaScript: 5
+  jQuery: 2
+
+user-analytics-platform:
+  React: 5
+  styled-components: 3
+  Redux: 3
+  GraphQL: 4
+  ECharts: 5
+  Jest: 2
+  Vite: 2
+  Agile/Scrum: 3
+  Jira: 3
+  code review: 4

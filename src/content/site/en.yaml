@@ -1,0 +1,200 @@
+meta:
+  siteName: Yu-Ching Chang
+  title: Yu-Ching Chang | Software Engineer, Full-stack and Data
+  description: Yu-Ching Chang, a software engineer with 5+ years of experience and a background in visual design. Front-end architecture, Python and PostgreSQL applications, and data projects. MSc Computer Science, University of Birmingham.
+
+nav:
+  label: Main navigation
+  menu: Menu
+  skip: Skip to main content
+  logo: YC
+  home: Home
+  work: Selected work
+  journey: Journey
+  skills: Skills
+  index: All work
+  about: About
+
+theme:
+  label: Theme
+  expand: show theme options
+  names:
+    spring: Spring theme
+    summer: Summer theme
+    autumn: Autumn theme
+    winter: Winter theme
+    shachiku: Coder theme
+
+langSwitch:
+  label: Switch language
+  other: 中文
+
+hero:
+  label: PORTFOLIO · 2026
+  display: Portfolio
+  name: Yu-Ching Chang
+  role: Software Engineer | Full-stack · Data
+  tagline: Making the unseen visible.
+  intro:
+    - Software engineer with 5+ years of development experience, including front-end architecture, risk monitoring and user analytics. Built and deployed personal full-stack projects with Python and PostgreSQL.
+    - Trained in visual design, with an MSc in Computer Science from the University of Birmingham.
+  facts:
+    - 5+ years in software development
+    - MSc Computer Science (Distinction)
+    - Python · TypeScript · SQL
+  stats:
+    - value: 5+
+      label: years in software development
+    - value: 20+
+      label: projects
+    - value: MSc
+      label: Computer Science (Distinction)
+  factsBesideStats:
+    - Python · TypeScript · SQL
+  sideLabel: PROLOGUE
+  featuredLabel: Selected 01
+  status: Open to full-stack and data roles
+  actions:
+    work: View work
+    cv: View CV
+    github: GitHub
+    linkedin: LinkedIn
+
+chapters:
+  work:
+    label: CHAPTER 01 · SELECTED WORK
+    title: Selected work
+  journey:
+    label: CHAPTER 02 · JOURNEY
+    title: Journey
+  skills:
+    label: CHAPTER 03 · SKILLS
+    title: Skills
+  index:
+    label: CHAPTER 04 · ALL WORK
+    title: All work
+  about:
+    label: CHAPTER 05 · ABOUT & CONTACT
+    title: About and contact
+
+work:
+  readMore: Read the full write-up
+  back: Back to all work
+  prev: Previous project
+  next: Next project
+  filterAll: All
+  filterLabel: Filter by category
+  count: 'Showing {n} projects'
+  links:
+    live: Live site
+    github: GitHub
+    demo: Demo
+  categories:
+    data: Data
+    fullstack: Full-stack
+    frontend: Front-end
+    design: Design
+  status:
+    live: Live
+    archived: Archived
+    internal: Internal company system
+    unpublished: Not publicly deployed
+    research: Research project
+  fields:
+    year: Year
+    role: Role
+    stack: Stack
+    category: Category
+    status: Status
+    title: Project
+    metrics: Key numbers
+  sections:
+    overview: Overview
+
+skills:
+  note: The dot matrix shows five levels of skill use within each project, not proficiency. Blank cells mean use has not been recorded. Practices include collaboration tools and workflows.
+  legend:
+    caption: Larger dots mean more use in that project.
+    practices: Practices include collaboration tools and workflows.
+    levels:
+      - Limited use
+      - Supporting use
+      - Regular use
+      - Major use
+      - Core use
+
+journey:
+  eras:
+    design: Design
+    frontend: Front-end
+    data: Data
+  branches:
+    art: Art
+    design: Design
+    frontend: Front-end
+    fullstack: Full-stack
+
+about:
+  bio:
+    - Over five years of front-end development experience at Neutec, progressing to Senior Front-end Engineer. Led the front-end architecture of a risk-management system adopted by three product lines and built the front end and tracking layer of a user analytics platform handling millions of events a day.
+    - Studied visual communication design before working as a web designer and front-end engineer. Completed an MSc in Computer Science at the University of Birmingham in 2026 with Distinction, researching cross-game bot detection from mouse trajectories. Built and deployed SpotClue and Job Sponsor Tracker with Python and PostgreSQL, covering data pipelines, browser-based inference and application deployment.
+  educationTitle: Education
+  education:
+    - school: University of Birmingham, UK
+      degree: MSc, Computer Science
+      period: 2025–2026
+      note: Distinction (81.7%)
+    - school: National Taiwan University of Arts, Taiwan
+      degree: BFA, Visual Communication Design
+      period: 2013–2017
+  awardsTitle: Awards and activities
+  awards:
+    - title: SPARK 2025 Coding Challenge
+      org: GSA Capital
+      date: Dec. 2025
+      desc: 21-day coding and quantitative challenge. Scored 34/35.
+    - title: voting-guide.tw
+      org: g0v Taiwan civic tech community
+      date: Feb. 2023
+      desc: Contributed to the front-end development of voting-guide.tw, an open-source pre-election information site.
+    - title: Lidemy Mentor Program
+      org: Lidemy
+      date: Apr. 2020
+      desc: Completed a four-month software engineering programme involving over 40 hours of study each week.
+    - title: The F2E Front-end Challenge
+      org: Hexschool
+      date: Jul. 2019
+      desc: A nine-week challenge. Built a web interface on a new theme each week and submitted it by the weekly deadline.
+    - title: Golden Pin Design Award (Finalist)
+      org: Taiwan Design Research Institute
+      date: Apr. 2017
+    - title: Excellence Award (international final)
+      org: ASPaC and Japan Package Design Association (JPDA)
+      date: Jan. 2017
+    - title: Gold Award (Taiwan round)
+      org: Asia Student Package Design Competition (ASPaC)
+      date: Nov. 2016
+  languagesTitle: Languages
+  languages:
+    - name: English
+      level: Advanced, MSc taught in English
+    - name: Mandarin
+      level: Native, Traditional Chinese
+    - name: Taiwanese Hokkien
+      level: Native
+    - name: Japanese
+      level: Advanced, JLPT N2
+  contactTitle: Contact
+  contact:
+    email: Email
+    linkedin: LinkedIn
+    github: GitHub
+
+footer:
+  copyright: Yu-Ching Chang
+  builtAt: Last built
+
+notFound:
+  title: Page not found
+  body: The requested page is unavailable.
+  home: Back to home

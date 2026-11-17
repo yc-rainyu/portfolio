@@ -1,0 +1,56 @@
+---
+import { sections, type SectionId } from '../lib/sections';
+
+interface Props {
+  id: SectionId;
+  label: string;
+  title: string;
+  compact?: boolean;
+}
+
+const { id, label, title, compact = false } = Astro.props;
+const file = sections.find((section) => section.id === id)?.file;
+---
+
+<header class:list={['chapter-heading', { 'chapter-heading--compact': compact }]}>
+  <div class="chapter-heading__text veil">
+    <p class="label">{label}</p><p class="chapter-heading__file" aria-hidden="true">{file}</p>
+    <h2 class="section-title" id={id}>{title}</h2>
+  </div>
+</header>
+
+<style>
+  .chapter-heading {
+    position: relative;
+    padding: 1.5rem 0 2rem;
+    margin-bottom: clamp(2rem, 5vw, 4.5rem);
+  }
+  .chapter-heading--compact {
+    padding-bottom: 0;
+    margin-bottom: 3rem;
+  }
+  .chapter-heading__text {
+    width: fit-content;
+    max-width: 100%;
+  }
+  .section-title {
+    font-size: clamp(2rem, 4vw, 3.25rem);
+    margin-top: 0.75rem;
+  }
+  .chapter-heading__file {
+    display: none;
+  }
+  :global([data-theme="shachiku"]) .chapter-heading__file {
+    display: block;
+    color: var(--b);
+    font-size: 0.875rem;
+    margin-top: 1rem;
+  }
+  :global([data-theme="shachiku"]) .section-title {
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+  }
+  :global([data-theme="shachiku"]) .section-title::before {
+    content: "# ";
+    color: var(--a);
+  }
+</style>

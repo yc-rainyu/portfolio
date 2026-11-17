@@ -1,0 +1,88 @@
+---
+import { Image } from 'astro:assets';
+import autumn from '../assets/journey/autumn.webp';
+import spring from '../assets/journey/spring.webp';
+import summer from '../assets/journey/summer.webp';
+import winter from '../assets/journey/winter.webp';
+import positions from '../assets/journey/river-positions.json';
+import type { JourneyItem, SiteCopy } from '../lib/content';
+interface Props { items: JourneyItem[]; copy: SiteCopy }
+const { items, copy } = Astro.props;
+---
+<div class="journey-map">
+  <div class="river-art" aria-hidden="true">
+    {Object.entries({autumn, spring, summer, winter}).map(([season, src]) => <Image src={src} alt="" class:list={['river-image', season]} loading="lazy" />)}
+  </div>
+  <script type="application/json" class="river-positions" set:html={JSON.stringify(positions)} />
+  <ol class="journey-rows">
+    {items.map((item) => (
+      <li class="journey-row" data-scroll-anchor={`journey-${item.id}`}>
+        <div class="graph" aria-hidden="true">
+          <svg class="river-leader" viewBox="0 0 100 100" preserveAspectRatio="none"><path class="leader" d="M 50 50 L 85 36 H 100" /></svg>
+          <span class="river-node" />
+        </div>
+        <div class="entry">
+          <span class="era">{copy.journey.eras[item.era]}</span>
+          <p class="year">{item.year}</p>
+          <h3>{item.title}</h3>
+          <p class="muted org">{item.org}</p>
+          <p class="desc">{item.desc}</p>
+        </div>
+      </li>
+    ))}
+  </ol>
+</div>
+<style>
+  .journey-map { position: relative; max-width: 65rem; margin-inline: auto; }
+  :global([data-theme="shachiku"]) .journey-map { display: none; }
+  .journey-rows { display: flex; flex-direction: column-reverse; }
+  .journey-row { display: grid; grid-template-columns: minmax(100px, 26%) minmax(0, 1fr); }
+  .graph { position: relative; }
+  .graph svg { position: absolute; width: 100%; height: 100%; inset: 0; overflow: visible; }
+  path { fill: none; }
+  .river-art { position: absolute; inset: 0 auto 0 0; width: 26%; pointer-events: none; opacity:0.7; }
+  .river-art :global(img) { position: absolute; width: 100%; height: 100%; object-fit: fill; display: none; }
+  .river-art :global(.autumn) { display: block; }
+  :global([data-theme="spring"]) .river-art :global(img),
+  :global([data-theme="summer"]) .river-art :global(img),
+  :global([data-theme="winter"]) .river-art :global(img) { display: none; }
+  :global([data-theme="spring"]) .river-art :global(.spring),
+  :global([data-theme="summer"]) .river-art :global(.summer),
+  :global([data-theme="winter"]) .river-art :global(.winter) { display: block; }
+  .leader { stroke: var(--muted); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .river-node { position: absolute; top: 50%; left: var(--river-x, 50%); width: 11px; height: 11px; border: 2px solid var(--bg); background: var(--a); border-radius: 50%; transform: translate(-50%, -50%); }
+  .era { display: block; color: var(--muted); font: 500 .7rem/1.5 var(--font-label); letter-spacing: .3em; text-transform: uppercase; margin-bottom: .25rem; }
+  .entry { min-width: 0; padding: 2.5rem 0 2.5rem 2rem; border-bottom: 1px solid var(--line); }
+  .year { font: 400 clamp(2rem, 4vw, 3rem)/1.3 var(--font-heading); margin-bottom: 1rem; }
+  h3 { font-size: 1.25rem; }
+  .org { font-size: .875rem; margin-top: .35rem; }
+  .desc { margin-top: 1rem; max-width: 37rem; }
+  @media (max-width: 767px) {
+    .river-art, .graph { display: none; }
+    .journey-row { grid-template-columns: minmax(0, 1fr); }
+    .entry { padding: 1.75rem 0; }
+    h3 { font-size: 1.125rem; }
+  }
+</style>
+
+<script>
+  function positionRivers() {
+    document.querySelectorAll<HTMLElement>('.journey-map').forEach(map => {
+      const positions: number[] = JSON.parse(map.querySelector('.river-positions')!.textContent!);
+      const place = () => {
+        const box = map.getBoundingClientRect();
+        if (!box.height) return;
+        map.querySelectorAll<HTMLElement>('.journey-row').forEach(row => {
+          const rect = row.getBoundingClientRect();
+          const y = Math.max(0, Math.min(positions.length - 1, Math.round((rect.top + rect.height / 2 - box.top) / box.height * (positions.length - 1))));
+          const x = positions[y] * 100;
+          row.style.setProperty('--river-x', `${x}%`);
+          row.querySelector('.leader')?.setAttribute('d', `M ${x} 50 L ${Math.max(x + 5, 85)} 36 H 100`);
+        });
+      };
+      new ResizeObserver(place).observe(map);
+      place();
+    });
+  }
+  positionRivers();
+</script>

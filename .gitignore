@@ -1,0 +1,16 @@
+content-raw/
+
+node_modules/
+dist/
+.astro/
+.vercel/
+
+.env
+.env.*
+.DS_Store
+
+public/cv/
+
+src/assets/fonts/generated/
+
+masters/

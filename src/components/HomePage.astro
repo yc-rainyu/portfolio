@@ -1,0 +1,236 @@
+---
+import Base from '../layouts/Base.astro';
+import SourceLines from './SourceLines.astro';
+import Hero from './Hero.astro';
+import Reveal from './Reveal.astro';
+import FeaturedWork from './FeaturedWork.astro';
+import SkillsMatrix from './SkillsMatrix.astro';
+import WorkIndex from './WorkIndex.astro';
+import ChapterHeading from './ChapterHeading.astro';
+import Journey from './Journey.astro';
+import JourneyHistory from './JourneyHistory.astro';
+import SkillsJson from './SkillsJson.astro';
+import PageScatter from './PageScatter.astro';
+import SectionWashes from './SectionWashes.astro';
+import FallingLeaves from './FallingLeaves.astro';
+import { site, type Lang } from '../config/site';
+import {
+  getCopy,
+  getFeatured,
+  getIndex,
+  getJourney,
+  getProjects,
+  getSkillGroups,
+  getSkillWeights,
+} from '../lib/content';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const copy = await getCopy(lang);
+const featured = await getFeatured(lang);
+const index = await getIndex(lang);
+const projects = await getProjects(lang);
+const journey = await getJourney(lang);
+const skillGroups = await getSkillGroups();
+const skillWeights = await getSkillWeights();
+
+const cv = site.links.cv;
+---
+
+<Base lang={lang} title={copy.meta.title} description={copy.meta.description}>
+  <FallingLeaves />
+  <Hero lang={lang} copy={copy} first={featured[0]} cvHref={cv[lang]} />
+
+  <div class="sections">
+  <SectionWashes />
+  <section class="section section--designed" data-reveal aria-labelledby="work" data-scroll-anchor="section-work" data-scroll-section="work">
+    <PageScatter chapter={0} />
+    <div class="container">
+      <SourceLines />
+      <ChapterHeading id="work" label={copy.chapters.work.label} title={copy.chapters.work.title} compact />
+      <FeaturedWork lang={lang} projects={featured} copy={copy} />
+    </div>
+  </section>
+
+  <section class="section section--designed" aria-labelledby="journey" data-scroll-anchor="section-journey" data-scroll-section="journey">
+    <PageScatter chapter={1} />
+    <div class="container">
+      <SourceLines />
+      <ChapterHeading id="journey" label={copy.chapters.journey.label} title={copy.chapters.journey.title} />
+      <Journey items={journey} copy={copy} />
+      <JourneyHistory items={journey} copy={copy} />
+    </div>
+  </section>
+
+  <section class="section section--designed" data-reveal aria-labelledby="skills" data-scroll-anchor="section-skills" data-scroll-section="skills">
+    <PageScatter chapter={2} />
+    <div class="container">
+      <SourceLines numbered={false} />
+      <ChapterHeading id="skills" label={copy.chapters.skills.label} title={copy.chapters.skills.title} />
+      <SkillsMatrix groups={skillGroups} projects={projects} weights={skillWeights} copy={copy} />
+      <SkillsJson lang={lang} groups={skillGroups} projects={projects} weights={skillWeights} />
+    </div>
+  </section>
+
+  <section class="section section--designed" data-reveal aria-labelledby="index" data-scroll-anchor="section-index" data-scroll-section="index">
+    <PageScatter chapter={3} />
+    <div class="container">
+      <SourceLines />
+      <ChapterHeading id="index" label={copy.chapters.index.label} title={copy.chapters.index.title} />
+      <WorkIndex lang={lang} projects={index} copy={copy} />
+    </div>
+  </section>
+
+  <section class="section section--designed" data-reveal aria-labelledby="about" data-scroll-anchor="section-about" data-scroll-section="about">
+    <PageScatter chapter={4} />
+    <div class="container">
+      <SourceLines />
+      <ChapterHeading id="about" label={copy.chapters.about.label} title={copy.chapters.about.title} />
+      <div class="about">
+        <div class="stack about__bio veil">
+          {copy.about.bio.map((paragraph) => <p>{paragraph}</p>)}
+        </div>
+
+        <div class="about__block veil">
+          <h3 class="label">{copy.about.educationTitle}</h3>
+          <ul class="about__list">
+            {
+              copy.about.education.map((e) => (
+                <li>
+                  <p>{e.school}</p>
+                  <p class="muted">
+                    {[e.degree, e.period, e.note].filter(Boolean).join(lang === 'zh' ? '｜' : ' | ')}
+                  </p>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <div class="about__block veil">
+          <h3 class="label">{copy.about.awardsTitle}</h3>
+          <ul class="about__list">
+            {
+              copy.about.awards.map((a) => (
+                <li>
+                  <p>{a.title}</p>
+                  <p class="muted">{[a.org, a.date].join(lang === 'zh' ? '｜' : ' | ')}</p>
+                  {a.desc && <p>{a.desc}</p>}
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <div class="about__block veil">
+          <h3 class="label">{copy.about.languagesTitle}</h3>
+          <ul class="about__list">
+            {
+              copy.about.languages.map((l) => (
+                <li>
+                  <span>{l.name}</span>
+                  <span class="muted">{lang === 'zh' ? `（${l.level}）` : ` (${l.level})`}</span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <div class="about__block veil">
+          <h3 class="label">{copy.about.contactTitle}</h3>
+          <ul class="about__list">
+            <li>
+              <span class="muted">{copy.about.contact.email}</span>
+              <a href={`mailto:${site.links.email}`}>{site.links.email}</a>
+            </li>
+            <li><a href={site.links.linkedin} target="_blank" rel="noopener">{copy.about.contact.linkedin}</a></li>
+            <li><a href={site.links.github} target="_blank" rel="noopener">{copy.about.contact.github}</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  </div>
+  <Reveal />
+</Base>
+
+<style>
+  .sections { position: relative; isolation: isolate; }
+  .about {
+    display: grid;
+    gap: 2.5rem;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+
+  .about__block > * + * {
+    margin-top: 0.75rem;
+  }
+
+  .about__list > * + * {
+    margin-top: 0.75rem;
+  }
+
+  .about__list li > span + a {
+    margin-inline-start: 0.75rem;
+  }
+
+  .about {
+    gap: 3.5rem 6rem;
+    grid-template-areas: "bio bio" "education awards" "languages awards" "contact awards";
+    align-items: start;
+  }
+  .about__bio {
+    grid-area: bio;
+  }
+  .about__block:nth-child(2) {
+    grid-area: education;
+  }
+  .about__block:nth-child(3) {
+    grid-area: awards;
+  }
+  .about__block:nth-child(4) {
+    grid-area: languages;
+  }
+  .about__block:nth-child(5) {
+    grid-area: contact;
+  }
+  .about__bio {
+    grid-column: 1 / -1;
+    max-width: 52rem;
+    font-size: 1.0625rem;
+  }
+  .about__block {
+    border-top: 1px solid var(--line);
+    padding-top: 1.5rem;
+  }
+  .about__list {
+    margin-top: 1.5rem;
+  }
+  .about__list > li + li {
+    margin-top: 1.5rem;
+  }
+  .about__list a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    overflow-wrap: anywhere;
+  }
+  @media (max-width: 767px) {
+    .about {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: "bio" "education" "awards" "languages" "contact";
+    }
+  }
+  :global([data-theme="shachiku"]) .about__block h3::before {
+    content: "## ";
+    color: var(--a);
+  }
+  :global([data-theme="shachiku"]) .about__list li::before {
+    content: "- ";
+    color: var(--a);
+  }
+</style>

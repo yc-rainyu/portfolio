@@ -1,0 +1,130 @@
+---
+import { art, seededRandom, seasons, type Season } from '../lib/season-art';
+
+const COUNT = 8;
+const FALL_SECONDS = [14, 26] as const;
+const SIZE_PX = [24, 52] as const;
+const OPACITY = [.55, .9] as const;
+const SNOW_SIZE_PX = [4, 8] as const;
+
+const pools: Record<Season, string[]> = {
+  spring: ['petal-01', 'petal-02'],
+  summer: ['maple-01', 'maple-02', 'maple-05'],
+  autumn: ['ginkgo-03', 'ginkgo-04', 'ginkgo-05'],
+  winter: [],
+};
+
+const fallingItems = seasons.flatMap((season, seasonIndex) => {
+  const random = seededRandom(20261117 + seasonIndex * 151);
+  const between = (range: readonly [number, number]) => range[0] + random() * (range[1] - range[0]);
+  return Array.from({ length: COUNT }, (_, index) => {
+    const fallSeconds = between(FALL_SECONDS);
+    const cycleSeconds = fallSeconds / .72;
+    return {
+      season,
+      kind: season === 'winter' ? 'snow' : 'leaf',
+      name: pools[season][index % (pools[season].length || 1)],
+      mobileHidden: index % 2 === 1,
+      x: (index + .2 + random() * .6) / COUNT * 100,
+      size: between(season === 'winter' ? SNOW_SIZE_PX : SIZE_PX),
+      alpha: between(OPACITY),
+      cycleSeconds,
+      delay: -cycleSeconds * ((index + .15 + random() * .7) / COUNT),
+      sway: 12 + random() * 24,
+      swaySeconds: 5 + random() * 5,
+      swayDelay: -random() * 10,
+      angle: random() * 240 - 120,
+      turn: 18 + random() * 35,
+    };
+  });
+});
+const groups = await Promise.all(seasons.map(async season => ({
+  season,
+  items: await Promise.all(fallingItems.filter(item => item.season === season).map(async item => {
+    const image = item.kind === 'leaf' ? await art(season, item.name, 128) : undefined;
+    return {
+      ...item,
+      style: [
+        `--x:${item.x}%`, `--size:${item.size}px`, `--alpha:${item.alpha}`,
+        `--duration:${item.cycleSeconds}s`, `--delay:${item.delay}s`,
+        `--sway:${item.sway}px`, `--sway-duration:${item.swaySeconds}s`,
+        `--sway-delay:${item.swayDelay}s`, `--angle:${item.angle}deg`, `--turn:${item.turn}deg`,
+        ...(image ? [`--src:${image.src}`, `--ratio:${image.ratio}`] : []),
+      ].join(';'),
+    };
+  })),
+})));
+---
+
+<div class="falling-leaves" aria-hidden="true" data-falling-leaves>
+  {groups.map(({ season, items }) => (
+    <div class="falling-group" data-season={season}>
+      {items.map(item => (
+        <span class:list={['fall', { 'mobile-hidden': item.mobileHidden }]} style={item.style}>
+          <span class="sway" data-kind={item.kind} />
+        </span>
+      ))}
+    </div>
+  ))}
+</div>
+
+<script>
+  const layer = document.querySelector<HTMLElement>('[data-falling-leaves]');
+  if (layer) {
+    const syncVisibility = () => { layer.dataset.paused = String(document.hidden); };
+    document.addEventListener('visibilitychange', syncVisibility);
+    syncVisibility();
+  }
+</script>
+
+<style>
+  .falling-leaves {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .falling-group { display: none; position: absolute; inset: 0; }
+  .fall {
+    position: absolute;
+    top: -80px;
+    left: var(--x);
+    width: var(--size);
+    animation: falling var(--duration) var(--delay) linear infinite;
+  }
+  .sway {
+    display: block;
+    width: 100%;
+    aspect-ratio: var(--ratio, 1);
+    background: var(--src) center / contain no-repeat;
+    animation: swaying var(--sway-duration) var(--sway-delay) ease-in-out infinite alternate;
+  }
+  .sway[data-kind='snow'] {
+    background: var(--snow, var(--b-soft));
+    border-radius: 50%;
+  }
+  @keyframes falling {
+    0% { transform: translateY(0); opacity: 0; }
+    5% { opacity: var(--alpha); }
+    67% { opacity: var(--alpha); }
+    72%, 100% { transform: translateY(calc(100vh + 160px)); opacity: 0; }
+  }
+  @keyframes swaying {
+    from { transform: translateX(calc(-50% - var(--sway))) rotate(calc(var(--angle) - var(--turn))); }
+    to { transform: translateX(calc(-50% + var(--sway))) rotate(calc(var(--angle) + var(--turn))); }
+  }
+  :global([data-theme='spring']) .falling-group[data-season='spring'],
+  :global([data-theme='summer']) .falling-group[data-season='summer'],
+  :global([data-theme='autumn']) .falling-group[data-season='autumn'],
+  :global([data-theme='winter']) .falling-group[data-season='winter'] { display: block; }
+  .falling-leaves[data-paused='true'] .fall,
+  .falling-leaves[data-paused='true'] .sway { animation-play-state: paused; }
+  :global([data-theme='shachiku']) .falling-leaves { display: none; }
+  @media (max-width: 767px) {
+    .mobile-hidden { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .falling-leaves { display: none; }
+  }
+</style>

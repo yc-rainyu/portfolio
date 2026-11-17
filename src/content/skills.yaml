@@ -1,0 +1,117 @@
+- id: programming
+  label: Programming & Databases
+  items:
+    - Python
+    - TypeScript
+    - JavaScript
+    - SQL
+    - PostgreSQL
+    - PostGIS
+    - pg_trgm
+    - SQLite
+
+- id: backend
+  label: Back-end
+  items:
+    - FastAPI
+    - Pydantic
+    - SQLAlchemy
+    - Alembic
+    - Flask
+    - Node.js
+    - name: REST
+      aliases: [REST API]
+    - OpenAPI
+    - GraphQL
+    - WebSocket
+    - SSE
+    - name: Google sign-in (OIDC)
+      aliases: [Google OIDC]
+    - JWT
+    - name: LLM integration
+      detail: Claude API
+      aliases: [Claude API]
+
+- id: frontend
+  label: Front-end
+  items:
+    - React
+    - Next.js
+    - Nuxt
+    - Redux
+    - styled-components
+    - TanStack Query
+    - Apollo Client
+    - name: Vue
+      aliases: [Vue.js]
+    - Vuex
+    - jQuery
+    - Ant Design
+    - Tailwind CSS
+    - ECharts
+    - PixiJS
+    - Phaser
+    - MapLibre GL
+    - HTML
+    - Pug
+    - CSS
+    - SCSS
+    - GSAP
+    - Canvas
+    - SVG
+
+- id: data
+  label: Data & ML
+  items:
+    - osm2pgsql
+    - pandas
+    - NumPy
+    - scikit-learn
+    - PyTorch
+    - Jupyter
+    - ONNX Runtime
+    - name: Transformers.js
+      detail: WebGPU
+      aliases: [Transformers.js (WebGPU)]
+
+- id: devops
+  label: Cloud & DevOps
+  items:
+    - name: AWS
+      detail: EC2, S3, IAM
+    - Docker
+    - Docker Compose
+    - name: GitHub Actions
+      detail: CI/CD
+    - Linux
+    - Bash
+    - Caddy
+    - Vercel
+    - Jenkins
+    - name: Git
+      aliases: [Git worktrees]
+
+- id: testing
+  label: Testing & Developer Tools
+  items:
+    - Pytest
+    - Jest
+    - Vitest
+    - Playwright
+    - Vite
+    - Webpack
+    - pnpm monorepo
+    - dat.GUI
+
+- id: practices
+  label: Practices
+  items:
+    - Agile/Scrum
+    - Jira
+    - GitLab
+    - code review
+    - technical documentation
+    - Figma
+    - name: AI-assisted coding
+      detail: Claude Code, Cursor, Codex
+      aliases: [Claude Code, Codex CLI, Cursor]

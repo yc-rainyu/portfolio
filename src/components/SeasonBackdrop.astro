@@ -1,0 +1,470 @@
+---
+import { art, seededRandom, seasons, type Art, type Season } from '../lib/season-art';
+
+type Layer = 'floor' | 'back' | 'mid' | 'front';
+
+interface Piece extends Art {
+  layer: Layer;
+  x: number;
+  y: number;
+  w: number;
+  rotate?: number;
+  opacity?: number;
+  blur?: boolean;
+  swing?: boolean;
+  wave?: boolean;
+  mobile?: { x: number; y: number; w: number };
+}
+
+type Spec = Omit<Piece, keyof Art> & { name: string; size?: number };
+
+const layout: Record<Season, Spec[]> = {
+  spring: [
+    { name: 'petal-01', layer: 'back', x: 91, y: 12, w: 39, rotate: 145, opacity: 0.32 },
+    { name: 'petal-02', layer: 'back', x: 5, y: 18, w: 29, rotate: -24, opacity: 0.2 },
+    { name: 'petal-02', layer: 'mid', x: 85, y: 8, w: 24, rotate: 72, opacity: 0.48, mobile: { x: 83, y: 35, w: 43 } },
+    { name: 'blossom-02', layer: 'mid', x: 101, y: 70, w: 23, rotate: 18, opacity: 0.38 },
+    { name: 'petal-01', layer: 'front', x: 2, y: 74, w: 12, rotate: 205, opacity: 0.46, mobile: { x: 5, y: 52, w: 19 } },
+    { name: 'petal-02', layer: 'front', x: 72, y: 91, w: 6, rotate: -38, opacity: 0.65, size: 320 },
+    { name: 'blossom-01', layer: 'mid', x: 75, y: 16, w: 11, rotate: -14, opacity: 0.52, mobile: { x: 65, y: 56, w: 24 } },
+  ],
+  summer: [
+    { name: 'maple-04', layer: 'back', x: 3, y: 23, w: 32, rotate: -32, opacity: 0.24 },
+    { name: 'wave-01', layer: 'floor', x: 50, y: 89, w: 100, opacity: 1, size: 1200, wave: true },
+    { name: 'maple-03', layer: 'back', x: 101, y: 72, w: 31, rotate: 20, opacity: 0.27 },
+    { name: 'maple-02', layer: 'mid', x: 96, y: 47, w: 21, rotate: 150, opacity: 0.66, mobile: { x: 69, y: 47, w: 39 } },
+    { name: 'windchime-01', layer: 'mid', x: 78, y: 1, w: 6.4, opacity: 0.98, swing: true, size: 320, mobile: { x: 48, y: 31, w: 12 } },
+    { name: 'maple-05', layer: 'front', x: 96, y: 46, w: 16, rotate: -30, opacity: 0.6 },
+    { name: 'maple-01', layer: 'mid', x: 0, y: 76, w: 13, rotate: 95, opacity: 0.4, mobile: { x: 5, y: 56, w: 20 } },
+  ],
+  autumn: [
+    { name: 'ginkgo-06', layer: 'back', x: 3, y: 21, w: 34, rotate: -32, opacity: 0.22 },
+    { name: 'ginkgo-01', layer: 'back', x: 101, y: 83, w: 40, rotate: 20, opacity: 0.28 },
+    { name: 'ginkgo-02', layer: 'mid', x: 83, y: 7, w: 26, rotate: 168, opacity: 0.68, mobile: { x: 78, y: 44, w: 44 } },
+    { name: 'ginkgo-04', layer: 'mid', x: 101, y: 28, w: 18, rotate: -68, opacity: 0.56 },
+    { name: 'ginkgo-03', layer: 'front', x: 68, y: 12, w: 7, rotate: 18, opacity: 0.68, size: 320, mobile: { x: 31, y: 44, w: 13 } },
+    { name: 'ginkgo-05', layer: 'front', x: 76, y: 92, w: 10, rotate: -12, opacity: 0.65 },
+    { name: 'ginkgo-04', layer: 'mid', x: 0, y: 75, w: 14, rotate: 62, opacity: 0.4, mobile: { x: 0, y: 62, w: 20 } },
+  ],
+  winter: [
+    { name: 'pine-01', layer: 'back', x: 96, y: 10, w: 44, opacity: 0.62, mobile: { x: 95, y: 28, w: 78 } },
+    { name: 'pine-04', layer: 'mid', x: 0, y: 15, w: 25, rotate: 155, opacity: 0.36 },
+    { name: 'pine-03', layer: 'mid', x: 101, y: 66, w: 28, rotate: -25, opacity: 0.64, mobile: { x: 104, y: 76, w: 35 } },
+    { name: 'pine-02', layer: 'back', x: -5, y: 80, w: 23, rotate: 200, opacity: 0.32 },
+    { name: 'pine-05', layer: 'front', x: 98, y: 92, w: 14, rotate: -20, opacity: 0.48 },
+    { name: 'pinecone-01', layer: 'front', x: 89, y: 90, w: 7, rotate: 25, opacity: 0.6, size: 320 },
+  ],
+};
+
+const pieces = (
+  await Promise.all(
+    seasons.map(async (season) =>
+      Promise.all(
+        layout[season].map(async ({ name, size, ...rest }) => ({ season, ...rest, ...(await art(season, name, size ?? 760)) })),
+      ),
+    ),
+  )
+).flat();
+
+
+interface Flake { x: number; y: number; r: number; opacity: number; drift: number; duration: number; delay: number }
+function snow(seed: number, count: number, radius: [number, number], opacity: [number, number]): Flake[] {
+  const random = seededRandom(seed);
+  return Array.from({ length: count }, () => ({
+    x: 68 + random() * 29, y: random() * 100,
+    r: radius[0] + random() * (radius[1] - radius[0]),
+    opacity: opacity[0] + random() * (opacity[1] - opacity[0]),
+    drift: 3 + random() * 15, duration: 24 + random() * 51, delay: -random() * 90,
+  }));
+}
+const snowLayers: { layer: Layer; flakes: Flake[] }[] = [
+  { layer: 'back', flakes: snow(11, 14, [3, 6], [.10, .20]) },
+  { layer: 'mid', flakes: snow(23, 36, [1.6, 2.8], [.30, .55]) },
+  { layer: 'front', flakes: snow(37, 30, [.8, 1.5], [.50, .85]) },
+];
+
+const layers: Layer[] = ['floor', 'back', 'mid', 'front'];
+
+function pieceStyle(p: (typeof pieces)[number]): string {
+  const vars = [
+    `--src:${p.src}`,
+    `--x:${p.x}`,
+    `--y:${p.y}`,
+    `--w:${p.w}`,
+    `--ratio:${p.ratio.toFixed(3)}`,
+    `--rotate:${p.rotate ?? 0}deg`,
+    `--opacity:${p.opacity ?? 1}`,
+  ];
+  if (p.mobile) vars.push(`--mx:${p.mobile.x}`, `--my:${p.mobile.y}`, `--mw:${p.mobile.w}`);
+  return vars.join(';');
+}
+---
+
+<div class="season-backdrop" aria-hidden="true" data-backdrop>
+  <svg class="season-backdrop__defs" width="0" height="0" focusable="false">
+    <filter id="stain-edge" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="3" seed="4" result="noise"></feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="70" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap>
+    </filter>
+  </svg>
+
+  <div class="season-backdrop__sky">
+    <div class="season-backdrop__wash"></div>
+    <div class="stain stain--low"></div>
+    <div class="stain stain--high"></div>
+    {
+      layers.map((layer) => (
+        <div class={`season-backdrop__layer season-backdrop__layer--${layer}`}>
+          {pieces
+            .filter((p) => p.layer === layer)
+            .map((p) => (
+              <span
+                class:list={['piece', { 'piece--blur': p.blur, 'piece--mobile': p.mobile, 'piece--swing': p.swing, 'piece--wave': p.wave }]}
+                data-season={p.season}
+                style={pieceStyle(p)}
+              >{p.swing && <><span class="chime-body" /><span class="chime-cord"><span class="chime-string" /><span class="chime-paper"><span class="chime-paper-top" /><span class="chime-paper-tail" /></span></span></>}</span>
+            ))}
+          {snowLayers
+            .filter((s) => s.layer === layer)
+            .map((s) => (
+              <div class:list={['snow', `snow--${layer}`]}>
+                {s.flakes.map((f) => <span class="snowflake" style={`--sx:${f.x}%;--sy:${f.y}%;--size:${f.r * 2}px;--alpha:${f.opacity};--drift:${f.drift}cqw;--duration:${f.duration}s;--delay:${f.delay}s`} />)}
+              </div>
+            ))}
+        </div>
+      ))
+    }
+  </div>
+  <div class="season-backdrop__ground"></div>
+</div>
+
+<script>
+  const query = window.matchMedia('(min-width: 768px) and (prefers-reduced-motion: no-preference)');
+
+  for (const backdrop of document.querySelectorAll<HTMLElement>('[data-backdrop]')) {
+    let visible = false;
+    let ticking = false;
+
+    const update = () => {
+      ticking = false;
+      if (!visible || !query.matches) return;
+      const top = backdrop.getBoundingClientRect().top;
+      backdrop.style.setProperty('--shift', `${Math.round(-top)}px`);
+    };
+
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(update);
+    };
+
+    new IntersectionObserver(([entry]) => {
+      visible = entry?.isIntersecting ?? false;
+      backdrop.toggleAttribute('data-offscreen', !visible);
+      if (visible) onScroll();
+    }).observe(backdrop);
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    query.addEventListener('change', () => {
+      if (!query.matches) backdrop.style.removeProperty('--shift');
+      else onScroll();
+    });
+  }
+</script>
+
+<style>
+  .season-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    --shift: 0px;
+  }
+
+  .season-backdrop__sky {
+    position: absolute;
+    inset: 0;
+    container-type: size;
+  }
+
+  .season-backdrop__wash,
+  .season-backdrop__layer {
+    position: absolute;
+    inset: 0;
+  }
+
+
+  :global(:is([data-theme='spring'], [data-theme='summer'], [data-theme='autumn'])) .season-backdrop__wash {
+    background:
+      radial-gradient(
+        ellipse 46% 78% at 100% 0%,
+        color-mix(in srgb, var(--a-soft) 82%, transparent) 0%,
+        color-mix(in srgb, var(--a-soft) 38%, transparent) 48%,
+        transparent 100%
+      ),
+      radial-gradient(
+        ellipse 44% 76% at 104% 100%,
+        color-mix(in srgb, var(--b-soft) 76%, transparent) 0%,
+        color-mix(in srgb, var(--b-soft) 32%, transparent) 50%,
+        transparent 100%
+      );
+  }
+
+  :global([data-theme='winter']) .season-backdrop__wash {
+    background: radial-gradient(
+      ellipse 58% 82% at 96% -6%,
+      color-mix(in srgb, var(--glow) 30%, transparent) 0%,
+      color-mix(in srgb, var(--glow) 12%, transparent) 52%,
+      transparent 100%
+    );
+  }
+
+
+  .season-backdrop__defs {
+    position: absolute;
+  }
+
+  .stain {
+    display: none;
+    position: absolute;
+    filter: url(#stain-edge) blur(10px);
+  }
+
+  .stain--low {
+    left: -9%;
+    bottom: -16%;
+    width: 46%;
+    aspect-ratio: 1.5;
+    border-radius: 46% 54% 60% 40% / 58% 44% 56% 42%;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in srgb, var(--stain-b) 34%, transparent) 0%,
+      color-mix(in srgb, var(--stain-b) 22%, transparent) 62%,
+      color-mix(in srgb, var(--stain-b) 30%, transparent) 84%,
+      transparent 100%
+    );
+  }
+
+  .stain--high {
+    left: -4%;
+    top: -12%;
+    width: 30%;
+    aspect-ratio: 1.15;
+    border-radius: 58% 42% 44% 56% / 46% 58% 42% 54%;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in srgb, var(--stain-a) 26%, transparent) 0%,
+      color-mix(in srgb, var(--stain-a) 16%, transparent) 66%,
+      color-mix(in srgb, var(--stain-a) 22%, transparent) 86%,
+      transparent 100%
+    );
+  }
+
+  :global(:is([data-theme='spring'], [data-theme='summer'], [data-theme='autumn'], [data-theme='winter'])) .stain {
+    display: block;
+    --stain-a: var(--a-soft);
+    --stain-b: var(--b-soft);
+  }
+
+  :global([data-theme='winter']) .stain {
+    --stain-a: var(--glow);
+    --stain-b: var(--glow);
+    opacity: 0.55;
+  }
+
+  .season-backdrop__ground {
+    display: none;
+    position: absolute;
+    inset: auto 0 0;
+    height: var(--hero-floor, 7rem);
+    background: linear-gradient(to bottom, transparent, var(--snow));
+  }
+
+  :global([data-theme='winter']) .season-backdrop__ground {
+    display: block;
+  }
+
+
+  .season-backdrop__layer--floor,
+  .season-backdrop__layer--back {
+    transform: translate3d(0, calc(var(--shift) * 0.06), 0);
+  }
+
+  .season-backdrop__layer--mid {
+    transform: translate3d(0, calc(var(--shift) * 0.14), 0);
+  }
+
+  .season-backdrop__layer--front {
+    transform: translate3d(0, calc(var(--shift) * 0.26), 0);
+  }
+
+  .piece,
+  .snow {
+    display: none;
+  }
+
+  .piece {
+    position: absolute;
+    left: calc(var(--x) * 1%);
+    top: calc(var(--y) * 1%);
+    width: calc(var(--w) * 1cqw);
+    aspect-ratio: var(--ratio);
+    background: var(--src) center / contain no-repeat;
+    opacity: var(--opacity);
+    translate: -50% -50%;
+    rotate: var(--rotate);
+  }
+
+  @media (min-width: 768px) {
+    .season-backdrop__layer {
+      mask-image: linear-gradient(to right, #000 0%, transparent 18%, transparent 59%, #000 67%);
+    }
+
+    .season-backdrop__layer--floor {
+      mask-image: none;
+    }
+  }
+
+  .piece--wave {
+    filter: saturate(2.2) contrast(1.6) brightness(.84);
+    mask-image: linear-gradient(to right, transparent, #000 26%, #000 80%, transparent 98%),
+      linear-gradient(to bottom, transparent, #000 22%, #000 72%, transparent);
+    mask-composite: intersect;
+  }
+
+  .piece--blur {
+    filter: blur(5px);
+  }
+
+  :global([data-theme='spring']) .piece[data-season='spring'],
+  :global([data-theme='summer']) .piece[data-season='summer'],
+  :global([data-theme='autumn']) .piece[data-season='autumn'],
+  :global([data-theme='winter']) .piece[data-season='winter'],
+  :global([data-theme='winter']) .snow {
+    display: block;
+  }
+
+
+  .piece--swing {
+    translate: -50% 0;
+    transform-origin: 50% 0;
+  }
+
+  .piece--swing { background: none; rotate: -1deg; }
+  .chime-body, .chime-cord, .chime-string, .chime-paper,
+  .chime-paper-top, .chime-paper-tail { position: absolute; inset: 0; }
+  .chime-body, .chime-string, .chime-paper-top, .chime-paper-tail {
+    background: var(--src) center / contain no-repeat;
+  }
+  .chime-body { clip-path: inset(0 0 59.1% 0); }
+  .chime-cord { transform-origin: 50% 40.9%; transform: rotate(-32deg); }
+  .chime-string { clip-path: inset(40.9% 0 51.6% 0); }
+  .chime-paper { transform-origin: 50% 48.4%; transform: rotate(-8deg) scaleX(.85); }
+  .chime-paper-top { clip-path: inset(48.4% 0 30% 0); }
+  .chime-paper-tail { clip-path: inset(70% 0 0 0); transform-origin: 50% 70%; transform: skewX(-5deg); }
+  @media (min-width: 768px) {
+    .piece--swing {
+      left: 85%;
+      transform: rotate(-5deg);
+      --chime-w: clamp(76px, 6.94cqw, 100px);
+      top: calc(90px - 0.18 * var(--chime-w) / var(--ratio));
+      width: var(--chime-w);
+    }
+  }
+
+  @media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+    .piece--swing { animation: chime-breeze 11.7s ease-in-out -2s infinite; }
+    .chime-cord { animation: cord-gust 13.1s ease-in-out -3s infinite; }
+    .chime-paper { animation: paper-breeze 7.9s ease-in-out -1s infinite; }
+    .chime-paper-tail { animation: paper-curl 4.7s ease-in-out -.7s infinite; }
+    @keyframes chime-breeze {
+      0%, 100% { rotate: -.5deg; }
+      18% { rotate: -1deg; } 25% { rotate: -2.5deg; }
+      36% { rotate: -1.8deg; } 72% { rotate: .4deg; } 84% { rotate: -1.4deg; }
+    }
+    @keyframes cord-gust {
+      0%, 100% { transform: rotate(-12deg); }
+      16% { transform: rotate(-8deg); } 23% { transform: rotate(-55deg); }
+      28% { transform: rotate(-49deg); } 32% { transform: rotate(-58deg); }
+      59% { transform: rotate(-19deg); } 74% { transform: rotate(-10deg); }
+      81% { transform: rotate(-38deg); } 87% { transform: rotate(-34deg); }
+    }
+    @keyframes paper-breeze {
+      0%, 100% { transform: rotate(4deg) scaleX(.95); }
+      22% { transform: rotate(8deg) scaleX(.8); }
+      34% { transform: rotate(-14deg) scaleX(.32); }
+      43% { transform: rotate(-8deg) scaleX(.65); }
+      69% { transform: rotate(6deg) scaleX(1); }
+      83% { transform: rotate(-10deg) scaleX(.5); }
+    }
+    @keyframes paper-curl {
+      0%, 100% { transform: skewX(-2deg); }
+      19% { transform: skewX(2deg); } 31% { transform: skewX(-12deg); }
+      42% { transform: skewX(-8deg); } 78% { transform: skewX(1deg); }
+    }
+  }
+
+  .snow { position: absolute; inset: 0; overflow: hidden; }
+  .snowflake {
+    position: absolute; left: var(--sx); top: var(--sy);
+    width: var(--size); height: var(--size); border-radius: 50%;
+    background: var(--b-soft); opacity: var(--alpha);
+  }
+  .snow--back .snowflake { filter: blur(2px); }
+  @media (prefers-reduced-motion: no-preference) {
+    .snowflake { top: 0; animation: snowfall var(--duration) linear var(--delay) infinite; }
+    @keyframes snowfall {
+      0% { transform: translate(0, -3cqh); opacity: 0; }
+      8% { opacity: var(--alpha); }
+      35% { transform: translate(calc(var(--drift) * .29), 34cqh); }
+      68% { transform: translate(calc(var(--drift) * .73), 69cqh); opacity: var(--alpha); }
+      96%, 100% { transform: translate(var(--drift), 104cqh); opacity: 0; }
+    }
+    .season-backdrop[data-offscreen] :is(.snowflake, .piece--swing, .chime-cord, .chime-paper, .chime-paper-tail) {
+      animation-play-state: paused;
+    }
+  }
+
+
+  @media (max-width: 767px) {
+    .season-backdrop__sky {
+      inset: 0 0 auto;
+      height: var(--backdrop-band, 9rem);
+      mask-image: linear-gradient(to bottom, #000 60%, transparent);
+    }
+
+    .season-backdrop__layer {
+      transform: none;
+    }
+
+    .piece:not(.piece--mobile) {
+      display: none !important;
+    }
+
+    /* Apply reduced motion to every layout */
+
+    .piece--mobile {
+      left: calc(var(--mx) * 1%);
+      top: calc(var(--my) * 1%);
+      width: calc(var(--mw) * 1cqw);
+    }
+
+    .stain {
+      display: none !important;
+    }
+  }
+
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .season-backdrop__layer {
+      mask-image: linear-gradient(to bottom, #000, transparent 12rem),
+        linear-gradient(to right, #000, transparent 5%, transparent 95%, #000);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .season-backdrop__layer {
+      transform: none;
+    }
+  }
+</style>

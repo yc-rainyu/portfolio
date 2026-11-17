@@ -1,0 +1,35 @@
+---
+interface Props { numbered?: boolean; }
+const { numbered = true } = Astro.props;
+---
+<div class="source-lines" aria-hidden="true">
+  {numbered && Array.from({ length: 240 }, (_, i) => String(i + 1).padStart(2, '0')).join('\n')}
+</div>
+<style>
+  .source-lines {
+    display: none;
+  }
+  :global([data-theme="shachiku"]) .source-lines {
+    display: block;
+    position: absolute;
+    left: var(--gutter);
+    top: 0;
+    bottom: 0;
+    width: 1.5rem;
+    overflow: hidden;
+    border-right: 1px solid var(--line);
+    user-select: none;
+    pointer-events: none;
+    color: var(--muted);
+    font: 0.625rem/2rem var(--font-mono);
+    text-align: left;
+    white-space: pre;
+  }
+
+  @media (max-width: 767px) {
+    :global([data-theme="shachiku"]) .source-lines {
+      width: 1rem;
+      font-size: 0.5625rem;
+    }
+  }
+</style>

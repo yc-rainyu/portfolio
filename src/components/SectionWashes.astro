@@ -1,0 +1,78 @@
+---
+const washes = [
+  { id: 'early-right', x: 99, y: 7, w: 82, h: 1050, tone: 'a', strength: 62, angle: -12, shape: '61% 39% 55% 45% / 42% 58% 38% 62%', mobile: null },
+  { id: 'work-journey', x: 5, y: 29, w: 76, h: 1350, tone: 'b', strength: 58, angle: 16, shape: '43% 57% 36% 64% / 62% 39% 61% 38%', mobile: { x: 0, y: 30, w: 150, h: 1000 } },
+  { id: 'journey-islet', x: 65, y: 43, w: 29, h: 460, tone: 'a', strength: 45, angle: -23, shape: '65% 35% 47% 53% / 38% 61% 39% 62%', mobile: null },
+  { id: 'journey-skills', x: 98, y: 53, w: 90, h: 1250, tone: 'b', strength: 65, angle: -9, shape: '38% 62% 56% 44% / 58% 41% 59% 42%', mobile: { x: 105, y: 54, w: 170, h: 1100 } },
+  { id: 'index-inlet', x: 24, y: 76, w: 43, h: 620, tone: 'b', strength: 50, angle: 21, shape: '56% 44% 65% 35% / 41% 59% 37% 63%', mobile: null },
+  { id: 'index-about', x: 91, y: 87, w: 74, h: 1150, tone: 'a', strength: 60, angle: 13, shape: '46% 54% 39% 61% / 63% 37% 57% 43%', mobile: { x: 85, y: 88, w: 145, h: 900 } },
+];
+---
+
+<div class="section-washes" aria-hidden="true">
+  {washes.map((wash) => (
+    <span
+      class:list={['wash', { 'wash--mobile': wash.mobile !== null }]}
+      data-wash={wash.id}
+      data-tone={wash.tone}
+      style={{
+        '--x': `${wash.x}%`, '--y': `${wash.y}%`, '--w': `${wash.w}%`, '--h': `${wash.h}px`,
+        '--strength': wash.strength / 100, '--angle': `${wash.angle}deg`, '--shape': wash.shape,
+        ...(wash.mobile ? {
+          '--mobile-x': `${wash.mobile.x}%`, '--mobile-y': `${wash.mobile.y}%`,
+          '--mobile-w': `${wash.mobile.w}%`, '--mobile-h': `${wash.mobile.h}px`,
+        } : {}),
+      }}
+    />
+  ))}
+</div>
+
+<style>
+  .section-washes {
+    --wash-strength: 0.75;
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: var(--wash-strength);
+  }
+
+  .wash {
+    --wash-color: var(--a-soft);
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: var(--w);
+    height: var(--h);
+    transform: translate(-50%, -50%) rotate(var(--angle));
+    border-radius: var(--shape);
+    opacity: var(--strength);
+    background:
+      radial-gradient(ellipse 49% 46% at 48% 51%,
+        color-mix(in srgb, var(--wash-color) 100%, transparent) 0%,
+        color-mix(in srgb, var(--wash-color) 62%, transparent) 30%,
+        color-mix(in srgb, var(--wash-color) 22%, transparent) 63%,
+        transparent 100%),
+      radial-gradient(ellipse 30% 37% at 67% 38%,
+        color-mix(in srgb, var(--wash-color) 24%, transparent) 0%,
+        color-mix(in srgb, var(--wash-color) 10%, transparent) 48%,
+        transparent 100%);
+  }
+
+  .wash[data-tone='b'] { --wash-color: var(--b-soft); }
+
+  :global([data-theme='winter']) .wash { --wash-color: var(--glow); }
+
+  :global([data-theme='shachiku']) .section-washes { display: none; }
+
+  @media (max-width: 767px) {
+    .wash:not(.wash--mobile) { display: none; }
+    .wash--mobile {
+      left: var(--mobile-x);
+      top: var(--mobile-y);
+      width: var(--mobile-w);
+      height: var(--mobile-h);
+    }
+  }
+</style>

@@ -1,0 +1,306 @@
+---
+import ProjectCover from './ProjectCover.astro';
+import type { Lang } from '../config/site';
+import { workPath } from '../lib/i18n';
+import { formatYears, type Project, type SiteCopy } from '../lib/content';
+
+interface Props {
+  lang: Lang;
+  projects: Project[];
+  copy: SiteCopy;
+}
+
+const { lang, projects, copy } = Astro.props;
+const categories = ['data', 'fullstack', 'frontend', 'design'] as const;
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<div class="work-index" data-work-index data-count-template={copy.work.count}>
+  <div class="work-index__filters veil" data-scroll-anchor="index-filters" role="group" aria-label={copy.work.filterLabel} hidden data-filters>
+    <button type="button" class="filter" data-filter="all" aria-pressed="true">{copy.work.filterAll}</button>
+    {
+      categories.map((category) => (
+        <button type="button" class="filter" data-filter={category} aria-pressed="false">
+          {copy.work.categories[category]}
+        </button>
+      ))
+    }
+  </div>
+  <p class="visually-hidden" aria-live="polite" data-count></p>
+
+  <p class="csv-header" aria-hidden="true">{[copy.work.fields.year, copy.work.fields.title, copy.work.fields.category, copy.work.fields.stack].join(", ")}</p>
+  <div class="work-index__body">
+    <ul class="work-index__list veil">
+      {
+        projects.map((project, i) => (
+          <li class="row" data-category={project.category} data-row={project.slug} data-scroll-anchor={`index-${project.slug}`}>
+            <span class="row__year">{formatYears(project)}</span>
+            <a class="row__title" href={workPath(lang, project.slug)}>{project.title}</a>
+            <span class="row__category">{copy.work.categories[project.category]}</span>
+            <span class="row__stack">{project.stack.slice(0, 4).join(' · ')}</span>
+            <div class="row__cover">
+              <ProjectCover project={project} number={pad(i + 1)} />
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+    <div class="work-index__preview" aria-hidden="true">
+      {
+        projects.map((project, i) => (
+          <div class="preview" data-preview={project.slug} data-active={i === 0 ? '' : undefined}>
+            <ProjectCover project={project} number={pad(i + 1)} />
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</div>
+
+<script>
+  import { preserveElementPosition } from '../lib/reading-position';
+  for (const root of document.querySelectorAll<HTMLElement>('[data-work-index]')) {
+    const rows = [...root.querySelectorAll<HTMLElement>('[data-row]')];
+    const filters = root.querySelector<HTMLElement>('[data-filters]');
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-filter]')];
+    const count = root.querySelector<HTMLElement>('[data-count]');
+    const template = root.dataset.countTemplate ?? '{n}';
+
+    const previews = [...root.querySelectorAll<HTMLElement>('[data-preview]')];
+    const activate = (row: HTMLElement | undefined) => {
+      for (const r of rows) r.toggleAttribute('data-active', r === row);
+      for (const preview of previews) {
+        preview.toggleAttribute('data-active', preview.dataset.preview === row?.dataset.row);
+      }
+    };
+    for (const row of rows) {
+      row.addEventListener('pointerenter', () => activate(row));
+      row.addEventListener('focusin', () => activate(row));
+    }
+
+    const apply = (filter: string, keepPosition = false) => {
+      if (!buttons.some(button => button.dataset.filter === filter)) return;
+      const update = () => {
+        root.dataset.filter = filter;
+        let shown = 0;
+        for (const row of rows) {
+          const match = filter === 'all' || row.dataset.category === filter;
+          row.hidden = !match;
+          if (match) shown++;
+        }
+        for (const button of buttons) {
+          button.setAttribute('aria-pressed', String(button.dataset.filter === filter));
+        }
+        if (count) count.textContent = template.replace('{n}', String(shown));
+        activate(rows.find((r) => !r.hidden));
+      };
+      if (keepPosition) preserveElementPosition(filters ?? root, update);
+      else update();
+    };
+
+    for (const button of buttons) {
+      button.addEventListener('click', () => apply(button.dataset.filter ?? 'all', true));
+    }
+    document.addEventListener('work-filter:restore', (event) => apply((event as CustomEvent<string>).detail));
+
+    if (filters) filters.hidden = false;
+    apply('all');
+  }
+</script>
+
+<style>
+  .work-index__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .work-index__filters[hidden] {
+    display: none;
+  }
+
+  .filter {
+    min-height: var(--hit);
+    padding: 0.25rem 1rem;
+    border: var(--line-width) solid var(--line);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink);
+    font-size: 0.875rem;
+    cursor: pointer;
+  }
+
+  .filter[aria-pressed="true"] {
+    border-color: var(--chip-strong-bg);
+    background: var(--chip-strong-bg);
+    color: var(--chip-strong-ink);
+  }
+
+  .work-index__list {
+    border-top: var(--line-width) solid var(--line);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "cover cover"
+      "title year"
+      "category category"
+      "stack stack";
+    gap: 0.25rem 1rem;
+    padding-block: 1.25rem;
+    border-bottom: var(--line-width) solid var(--line);
+  }
+
+  .row[hidden] {
+    display: none;
+  }
+
+  .row__cover {
+    grid-area: cover;
+    margin-bottom: 0.75rem;
+  }
+
+  .row__title {
+    grid-area: title;
+    color: var(--ink);
+    text-decoration-thickness: 1px;
+  }
+
+  .row__year {
+    grid-area: year;
+    font-family: var(--font-label);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .row__category {
+    grid-area: category;
+  }
+
+  .row__stack {
+    grid-area: stack;
+  }
+
+  .row__year,
+  .row__category,
+  .row__stack {
+    color: var(--muted);
+    font-size: 0.8125rem;
+  }
+
+  .work-index__preview {
+    display: none;
+  }
+
+  @media (min-width: 1024px) {
+    .work-index__body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+      gap: 3rem;
+      align-items: start;
+    }
+
+    .work-index__preview {
+      display: block;
+      position: sticky;
+      top: calc(var(--header-h) + 1rem);
+    }
+
+    .preview {
+      display: none;
+    }
+
+    .preview[data-active] {
+      display: block;
+    }
+
+    .row {
+      grid-template-columns: 6.5rem minmax(0, 2fr) 5rem minmax(0, 1.6fr);
+      grid-template-areas: "year title category stack";
+      align-items: baseline;
+      gap: 0 1.25rem;
+      padding-block: 0.75rem;
+    }
+
+    .row__cover {
+      display: none;
+    }
+
+    .row[data-active] .row__title {
+      color: var(--accent-text);
+    }
+  }
+
+  .row__title {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .row__year {
+    font-family: var(--font-mono);
+  }
+  .row[data-active] {
+    background: var(--surface);
+  }
+  .work-index__preview {
+    background: var(--card);
+    border: 1px solid var(--line);
+    padding: 12px;
+    box-shadow: 0 16px 36px -26px var(--muted);
+  }
+  @media (min-width: 1024px) {
+    .row {
+      grid-template-columns: 5rem minmax(0, 1fr) 4rem;
+      grid-template-areas: "year title category" ". stack stack";
+      padding: 1rem 0.75rem;
+      column-gap: 1rem;
+    }
+    .row__stack {
+      margin-top: 0.25rem;
+      font-size: 0.6875rem;
+    }
+  }
+  :global([data-theme="shachiku"]) .row__year::after,
+  :global([data-theme="shachiku"]) .row__title::after,
+  :global([data-theme="shachiku"]) .row__category::after {
+    content: ",";
+    color: var(--muted);
+  }
+  :global([data-theme="shachiku"]) .row__title {
+    color: var(--b);
+  }
+  :global([data-theme="shachiku"]) .row__stack::before {
+    content: '"';
+  }
+  :global([data-theme="shachiku"]) .row__stack::after {
+    content: '"';
+  }
+
+  .csv-header {
+    display: none;
+  }
+  :global([data-theme="shachiku"]) .csv-header {
+    display: block;
+    color: var(--a);
+    padding-block: 1rem;
+    font-size: 0.75rem;
+  }
+
+  @media (max-width: 1023px) {
+    .work-index__list {
+      display: grid;
+      gap: 1.5rem;
+      border-top: 0;
+    }
+    .row {
+      padding: 12px;
+      border: 1px solid var(--line);
+      background: var(--card);
+    }
+    .row__cover {
+      margin-bottom: 0.75rem;
+    }
+  }
+</style>

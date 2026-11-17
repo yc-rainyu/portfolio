@@ -1,0 +1,69 @@
+# Merges end branches while joins absorb them into another branch
+- year: 2010
+  title: Fine arts programme
+  org: National Hsinchu Girls’ Senior High School
+  desc: Trained in fine art and drawing to develop visual observation skills.
+  era: design
+  branch: art
+
+- year: 2013
+  title: Visual Communication Design
+  org: National Taiwan University of Arts
+  desc: Developed a foundation in visual communication and graphic design.
+  era: design
+  branch: design
+  from: art
+
+- year: 2016–17
+  title: ASPaC Gold Award · Golden Pin Design Award finalist
+  org: Asia Student Package Design Competition
+  desc: A food-themed pain-relief patch that changes colour with body heat won the Gold Award in the Taiwan round and an Excellence Award at the international final. The graduation project used dust collecting on street-lamp banners to make air pollution visible.
+  era: design
+  branch: design
+
+- year: 2017
+  title: Front-end Designer
+  org: Hgiga Inc.
+  desc: Designed and maintained websites for 5+ government agencies, including Taiwan Water Corporation, the Ministry of Health and Welfare and the Ministry of the Interior, all built to level AA of the government accessibility standard.
+  era: design
+  branch: frontend
+  from: design
+  merges: [art]
+
+- year: 2019
+  title: Preparing to change career
+  org: Hexschool · Lidemy
+  desc: The nine-week The F2E Front-end Challenge, followed by the four-month Lidemy Mentor Program.
+  era: frontend
+  branch: frontend
+
+- year: 2020
+  title: Front-end Engineer
+  org: Neutec Ltd.
+  desc: Moved into front-end engineering.
+  era: frontend
+  branch: frontend
+  merges: [design]
+
+- year: 2023
+  title: Senior Front-end Engineer
+  org: Neutec Ltd.
+  desc: Led the front-end architecture of a risk-management system launched in three months by a three-person team and adopted by three product lines. Work at Neutec also included a user analytics platform, a game chat room, an esports tournament platform and a UI component library for designers.
+  era: frontend
+  branch: frontend
+
+- year: 2025–2026
+  title: MSc Computer Science
+  org: University of Birmingham, UK
+  desc: Graduated with Distinction. The dissertation studied cross-game bot detection from mouse trajectories, and a paper has been submitted to ACM SAC 2027.
+  era: data
+  branch: fullstack
+  from: frontend
+
+- year: 2026
+  title: Full-stack and data
+  org: Personal projects
+  desc: Developed and launched SpotClue for image geolocation and Job Sponsor Tracker for job analysis and application tracking.
+  era: data
+  branch: fullstack
+  joins: [frontend]

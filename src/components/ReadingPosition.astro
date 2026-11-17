@@ -1,0 +1,9 @@
+<script>
+  import { restoreLanguagePosition } from '../lib/reading-position';
+  // Restore position after both layouts are ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', restoreLanguagePosition, { once: true });
+  } else {
+    restoreLanguagePosition();
+  }
+</script>

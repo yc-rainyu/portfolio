@@ -1,0 +1,228 @@
+---
+import type { Project, SiteCopy, SkillGroup, SkillWeights } from '../lib/content';
+import { buildSkillMatrix } from '../lib/skills';
+
+interface Props {
+  groups: SkillGroup[];
+  projects: Project[];
+  weights: SkillWeights;
+  copy: SiteCopy;
+}
+
+const { groups, projects, weights, copy } = Astro.props;
+const matrix = buildSkillMatrix(groups, projects, weights);
+const pad = (n: number) => String(n).padStart(2, '0');
+// Keep colours stable without encoding usage
+const dotTone = (skill: string, project: string) => {
+  let hash = 2166136261;
+  for (const character of `${skill}|${project}`) {
+    hash = Math.imul(hash ^ character.charCodeAt(0), 16777619);
+  }
+  hash = Math.imul(hash ^ (hash >>> 16), 0x7feb352d);
+  hash = Math.imul(hash ^ (hash >>> 15), 0x846ca68b);
+  return ((hash ^ (hash >>> 16)) & 1) === 0 ? 'a' : 'b';
+};
+---
+
+<div class="skills">
+  <div class="matrix veil" data-matrix>
+    <table style={`--projects:${matrix.columns.length}`}>
+      <caption class="visually-hidden">{copy.skills.note}</caption>
+      <colgroup>
+        <col />
+        {matrix.columns.map(() => <col data-col />)}
+      </colgroup>
+      <thead>
+        <tr>
+          <th></th>
+          {
+            matrix.columns.map((project, i) => (
+              <th scope="col" data-head>
+                <span class="matrix__col" aria-hidden="true">{pad(i + 1)}</span>
+                <span class="visually-hidden">{project.title}</span>
+              </th>
+            ))
+          }
+        </tr>
+      </thead>
+      {
+        matrix.groups.map((group) => (
+          <tbody data-scroll-anchor={`skill-group-${group.id}`}>
+            <tr class="matrix__group">
+              <th scope="rowgroup" colspan={matrix.columns.length + 1}>
+                <span class="label">{group.label}</span>
+              </th>
+            </tr>
+            {[...group.rows].sort((a, b) => Number(b.used.some(Boolean)) - Number(a.used.some(Boolean))).map((row) => (
+              <tr data-empty={!row.used.some(Boolean) ? "true" : undefined} data-scroll-anchor={`skill-${group.id}-${row.name}`}>
+                <th scope="row">{row.name}</th>
+                {row.weight.map((weight, columnIndex) => (
+                  <td data-weight={weight} data-tone={dotTone(`${group.id}/${row.name}`, matrix.columns[columnIndex]!.slug)} title={weight > 0 ? copy.skills.legend.levels[weight - 1] : undefined}>{weight > 0 && <><span class="matrix__dot" data-weight={weight} aria-hidden="true" /><span class="visually-hidden">{copy.skills.legend.levels[weight - 1]}</span></>}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        ))
+      }
+    </table>
+    <aside class="matrix__key">
+    <div class="matrix__scale">
+      <p>{copy.skills.legend.caption}</p>
+      <ol class="matrix__scale-dots">
+        {copy.skills.legend.levels.map((level, i) => (
+          <li title={level}><span class="matrix__dot" data-weight={i + 1} aria-hidden="true" /><span class="visually-hidden">{level}</span></li>
+        ))}
+      </ol>
+      <p class="matrix__practices">{copy.skills.legend.practices}</p>
+    </div>
+    <ol class="matrix__legend">
+      {
+        matrix.columns.map((project, i) => (
+          <li data-legend>
+            <span class="matrix__col">{pad(i + 1)}</span>
+            <span>{project.title}</span>
+          </li>
+        ))
+      }
+    </ol>
+    </aside>
+  </div>
+
+  <dl class="skill-list veil">
+    {
+      groups.map((group) => (
+        <div class="skill-list__group" data-scroll-anchor={`skill-group-${group.id}`}>
+          <dt class="label">{group.label}</dt>
+          <dd>
+            <ul>
+              {group.items.map((item) => (
+                <li data-scroll-anchor={`skill-${group.id}-${item.name}`}>{item.detail ? `${item.name} (${item.detail})` : item.name}</li>
+              ))}
+            </ul>
+</dd>
+        </div>
+      ))
+    }
+  </dl>
+  <p class="visually-hidden">{copy.skills.note}</p>
+</div>
+
+<script>
+  for (const matrix of document.querySelectorAll<HTMLElement>('[data-matrix]')) {
+    const table = matrix.querySelector('table');
+    if (!table) continue;
+    const cells = [...table.querySelectorAll<HTMLTableCellElement>('td')];
+    const heads = [...matrix.querySelectorAll<HTMLElement>('[data-head]')];
+    const legend = [...matrix.querySelectorAll<HTMLElement>('[data-legend]')];
+    let current = -1;
+
+    const highlight = (index: number) => {
+      if (index === current) return;
+      current = index;
+      for (const group of [heads, legend]) {
+        group.forEach((el, i) => el.toggleAttribute('data-active', i === index));
+      }
+      cells.forEach((cell) => cell.toggleAttribute('data-active', cell.cellIndex - 1 === index));
+    };
+
+    table.addEventListener('pointerover', (event) => {
+      const cell = (event.target as HTMLElement).closest<HTMLTableCellElement>('td, th[data-head]');
+      highlight(cell ? cell.cellIndex - 1 : -1);
+    });
+    table.addEventListener('pointerleave', () => {
+      highlight(-1);
+    });
+    legend.forEach((item, i) => {
+      item.addEventListener('pointerenter', () => highlight(i));
+      item.addEventListener('pointerleave', () => highlight(-1));
+    });
+  }
+</script>
+
+<style>
+  :global([data-theme="shachiku"]) .skills { display: none; }
+  .skills { color: var(--ink); }
+  .matrix {
+    --cell: 24px; --dot-opacity: 0.7;
+    --hover-line: color-mix(in srgb, var(--line) 45%, var(--b));
+    display: none;
+  }
+  :global([data-theme="spring"]) .matrix { --hover-line: color-mix(in srgb, var(--line) 45%, var(--a)); }
+  :global([data-theme="winter"]) .matrix { --hover-line: color-mix(in srgb, var(--line) 45%, var(--a-soft)); }
+  .skill-list { display: grid; gap: 1.5rem; }
+  .skill-list__group { padding-block: 1.5rem; border-top: 1px solid var(--line); }
+  .skill-list ul { display: flex; flex-wrap: wrap; gap: 0.125rem 1.25rem; }
+  .skill-list li { line-height: 1.9; }
+
+  @media (min-width: 1025px) {
+    .matrix {
+      display: grid;
+      grid-template-columns: max-content minmax(12rem, 16rem);
+      justify-content: start;
+      gap: clamp(1.5rem, 3vw, 3rem);
+      align-items: start;
+    }
+    .skill-list {
+      display: none;
+    }
+  }
+  table { width: calc(clamp(12rem, 22vw, 20rem) + var(--projects) * var(--cell)); table-layout: fixed; border-collapse: collapse; font-size: 0.8125rem; }
+  col:first-child { width: clamp(12rem, 22vw, 20rem); }
+  col[data-col] { width: var(--cell); }
+  th, td { height: var(--cell); padding: 0; font-weight: 400; text-align: start; }
+  tbody th[scope="row"] { padding-inline-end: 1rem; line-height: var(--cell); white-space: nowrap; }
+  tr[data-empty] th { color: var(--muted); }
+  td { position: relative; text-align: center; cursor: default; --vertical-line: var(--line); --horizontal-line: var(--line); }
+  td::before, td::after { content: ""; position: absolute; pointer-events: none; }
+  td::before { left: 50%; top: 0; bottom: 0; width: 1px; background: var(--vertical-line); }
+  td::after { left: 0; right: 0; top: 50%; height: 1px; background: var(--horizontal-line); }
+  @media (prefers-reduced-motion: no-preference) {
+    td::before, td::after { transition: background-color .25s; }
+  }
+  td:last-child::after { right: 50%; }
+  td[data-active] { --vertical-line: var(--hover-line); }
+  tbody tr:not(.matrix__group):hover td { --horizontal-line: var(--hover-line); }
+  td .matrix__dot { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; }
+  thead th {
+    position: sticky; top: calc(var(--header-h) - 1rem); z-index: 3;
+    height: 44px; background: var(--bg); text-align: center;
+
+  }
+  .matrix__col { font-family: var(--font-label); font-size: 0.6875rem; font-variant-numeric: tabular-nums; color: var(--muted); }
+  thead th[data-active] .matrix__col, .matrix__legend li[data-active] .matrix__col { color: var(--accent-text); }
+  thead th[data-head]::after {
+    content: ""; position: absolute; top: 70%; bottom: 0; left: 50%;
+    width: 1px; background: var(--line);
+  }
+  thead th[data-active]::after { background: var(--hover-line); }
+  .matrix__group th { height: auto; padding-block: 2rem 0.75rem; }
+  td { --dot-hue: var(--a); }
+  td[data-tone="b"] { --dot-hue: var(--b); }
+  .matrix__dot {
+    display: inline-block; vertical-align: middle; flex: none;
+    border-radius: 50%; box-sizing: border-box; pointer-events: none;
+    opacity: var(--dot-opacity);
+  }
+  .matrix__dot { background: var(--dot-hue, var(--a)); }
+  .matrix__dot[data-weight="1"] { width: 10px; height: 10px; }
+  .matrix__dot[data-weight="2"] { width: 15px; height: 15px; }
+  .matrix__dot[data-weight="3"] { width: 20px; height: 20px; }
+  .matrix__dot[data-weight="4"] { width: 25px; height: 25px; }
+  .matrix__dot[data-weight="5"] { width: 30px; height: 30px; }
+  :global([data-theme="winter"]) td { --winter-base: var(--a-soft); }
+  :global([data-theme="winter"]) td[data-tone="b"] { --winter-base: var(--b); }
+  :global([data-theme="winter"]) tbody .matrix__dot { background: var(--winter-base); }
+  tbody tr:not(.matrix__group):hover th { color: var(--accent-text); }
+  .matrix__key {
+    position: sticky; top: calc(var(--header-h) + 1rem);
+    background: var(--card); padding: 1.25rem; border: 1px solid var(--line);
+    font-size: 0.8125rem; line-height: 1.5;
+  }
+  .matrix__legend { display: grid; gap: 0.375rem; }
+  .matrix__scale { margin-block-end: 1rem; padding-block-end: 1rem; border-bottom: 1px solid var(--line); }
+  .matrix__scale-dots { display: flex; gap: 0.375rem; align-items: center; margin-block: 0.75rem; }
+  .matrix__scale-dots li { display: flex; width: 30px; height: 30px; align-items: center; justify-content: center; }
+  .matrix__practices { color: var(--muted); font-size: 0.75rem; }
+  .matrix__legend li { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr); gap: 0.5rem; align-items: baseline; }
+  .matrix__legend li[data-active] { color: var(--accent-text); }
+</style>

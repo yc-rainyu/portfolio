@@ -1,0 +1,67 @@
+---
+import { storageKeys, type Lang } from '../config/site';
+import { htmlLang, otherLang, pathInLang } from '../lib/i18n';
+import type { SiteCopy } from '../lib/content';
+
+interface Props {
+  lang: Lang;
+  copy: SiteCopy;
+}
+
+const { lang, copy } = Astro.props;
+const target = otherLang(lang);
+const href = pathInLang(Astro.url.pathname, target);
+---
+
+<a class="lang-switcher" href={href} lang={htmlLang[target]} hreflang={htmlLang[target]} data-lang-switch={target} data-storage-key={storageKeys.lang}>
+  <span class="visually-hidden" lang={htmlLang[lang]}>{copy.langSwitch.label}：</span>{copy.langSwitch.other}
+</a>
+
+<script>
+  import { captureReadingPosition, saveLanguagePosition, type ReadingPosition } from '../lib/reading-position';
+
+  for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-lang-switch]')) {
+    const syncHref = (position?: ReadingPosition) => {
+      const target = new URL(link.href);
+      const theme = document.documentElement.dataset.theme;
+      if (theme) target.searchParams.set('theme', theme);
+      // Use shared section anchors when switching languages
+      const section = position?.section.replace(/^section-/, '');
+      target.hash = /^\/(en|zh)\/$/.test(target.pathname)
+        ? section && ['work', 'journey', 'skills', 'index', 'about'].includes(section) ? section : position ? '' : location.hash
+        : '';
+      link.href = target.href;
+      return target;
+    };
+    syncHref();
+    window.addEventListener('hashchange', () => syncHref());
+    new MutationObserver(() => syncHref()).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    link.addEventListener('click', (event) => {
+      try {
+        localStorage.setItem(link.dataset.storageKey ?? 'lang', link.dataset.langSwitch ?? '');
+      } catch { }
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const position = captureReadingPosition();
+      const target = syncHref(position);
+      saveLanguagePosition(target.pathname, position);
+    });
+  }
+</script>
+
+<style>
+  .lang-switcher {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--hit);
+    min-height: var(--hit);
+    padding-inline: 0.5rem;
+    color: var(--ink);
+    font-size: 0.875rem;
+    text-decoration: none;
+  }
+
+  .lang-switcher:hover {
+    color: var(--accent-text);
+  }
+</style>

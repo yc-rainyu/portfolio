@@ -1,0 +1,50 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import { site, storageKeys } from '../config/site';
+import { getCopy } from '../lib/content';
+
+const zh = await getCopy('zh');
+const en = await getCopy('en');
+const title = `${zh.meta.siteName}`;
+const key = storageKeys.lang;
+---
+
+<!doctype html>
+<html lang="en" data-theme={site.defaultTheme}>
+  <head>
+    <BaseHead title={title} description={en.meta.description} noindex />
+    <link rel="alternate" hreflang="zh-TW" href={new URL('/zh/', Astro.site)} />
+    <link rel="alternate" hreflang="en" href={new URL('/en/', Astro.site)} />
+    <script is:inline define:vars={{ key }}>
+      (function () {
+        var lang = null;
+        try {
+          lang = localStorage.getItem(key);
+        } catch (e) {}
+        if (lang !== 'zh' && lang !== 'en') {
+          lang = /^zh\b/i.test(navigator.language || '') ? 'zh' : 'en';
+        }
+        location.replace('/' + lang + '/' + location.search + location.hash);
+      })();
+    </script>
+  </head>
+  <body>
+    <noscript>
+      <main class="container language-gate">
+        <h1>{zh.meta.siteName}</h1>
+        <ul class="actions">
+          <li><a class="btn" href="/zh/" lang="zh-Hant-TW" hreflang="zh-Hant-TW">中文</a></li>
+          <li><a class="btn" href="/en/" lang="en-GB" hreflang="en-GB">English</a></li>
+        </ul>
+      </main>
+    </noscript>
+  </body>
+</html>
+
+<style is:global>
+  .language-gate {
+    display: grid;
+    gap: 1.5rem;
+    padding-block: 20vh;
+  }
+</style>

@@ -1,0 +1,148 @@
+---
+import { Image, getImage } from 'astro:assets';
+import dataCover from '../assets/covers/data.webp';
+import fullstackCover from '../assets/covers/fullstack.webp';
+import frontendCover from '../assets/covers/frontend.webp';
+import designCover from '../assets/covers/design.webp';
+import type { Project } from '../lib/content';
+interface Props { project: Project; number: string; loading?: 'lazy' | 'eager'; fit?: 'cover' | 'contain' }
+const { project, number, loading = 'lazy', fit = 'cover' } = Astro.props;
+const sizes = fit === 'contain' ? '(min-width: 1440px) 1088px, 90vw' : '(max-width: 767px) 90vw, 50vw';
+const covers = { data: dataCover, fullstack: fullstackCover, frontend: frontendCover, design: designCover };
+const mask = !project.cover
+  ? await Promise.all([
+      getImage({ src: covers[project.category], width: 1000, format: 'avif', quality: 50 }),
+      getImage({ src: covers[project.category], width: 1000, format: 'webp', quality: 80 }),
+    ])
+  : undefined;
+const maskStyle = mask
+  ? `--cover-mask:url("${mask[1].src}");--cover-mask-set:image-set(url("${mask[0].src}") type("image/avif"), url("${mask[1].src}") type("image/webp"))`
+  : undefined;
+// Use a still image when reduced motion is preferred
+const still = project.cover && project.coverStill ? await getImage({ src: project.coverStill, width: 1200, format: 'webp' }) : undefined;
+const seed = [...project.slug].reduce((sum, char) => (sum * 31 + char.charCodeAt(0)) >>> 0, 7);
+const offset = 12 + seed % 34;
+---
+{project.cover ? <div class="project-image" data-fit={fit}>{still ? <picture><source media="(prefers-reduced-motion: reduce)" srcset={still.src} /><Image src={project.cover} alt={project.coverAlt ?? project.title} widths={[480, 800, 1200]} sizes={sizes} loading={loading} /></picture> : <Image src={project.cover} alt={project.coverAlt ?? project.title} widths={[480, 800, 1200]} sizes={sizes} loading={loading} />}</div> : <div class="hero-cover" aria-hidden="true" style={maskStyle}>
+  <div class="hero-cover__watercolor"></div>
+  <svg class="hero-cover__pattern" viewBox="0 0 400 250" fill="none">
+    {Array.from({ length: 7 }, (_, i) => <path d={`M ${180 + i * 19} -20 C ${80 + offset} ${60 + i * 9}, ${420 - offset} ${110 + i * 10}, ${230 + i * 24} 280`} />)}
+    <circle cx={300 + offset} cy="65" r="25" />
+  </svg>
+  <span class="hero-cover__number">{number}</span>
+  <div class="hero-cover__caption">
+    <p>{project.title}</p>
+    <span>{project.stack.slice(0, 3).join(' / ')}</span>
+  </div>
+</div>}
+<style>
+  .project-image picture { display: contents; }
+  .hero-cover {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .hero-cover__pattern {
+    display: none;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    stroke: var(--a);
+    stroke-width: 0.7;
+    opacity: 0.45;
+  }
+  .hero-cover__watercolor {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(125deg, var(--a-soft) 10%, var(--a) 43%, var(--b) 78%, var(--deep) 115%);
+    -webkit-mask-image: var(--cover-mask);
+    mask-image: var(--cover-mask);
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    mask-mode: alpha;
+  }
+  /* Check image format support before applying the mask */
+  @supports (mask-image: image-set(url("a.avif") type("image/avif"))) {
+    .hero-cover__watercolor {
+      -webkit-mask-image: var(--cover-mask-set);
+      mask-image: var(--cover-mask-set);
+    }
+  }
+  :global([data-theme='winter']) .hero-cover__watercolor {
+    background: linear-gradient(125deg, var(--a) 10%, var(--a-soft) 45%, var(--b-soft) 85%);
+  }
+  :global(.js) .hero-cover:not([data-shown]) .hero-cover__watercolor {
+    background: none;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  :global([data-theme='shachiku']) .hero-cover__watercolor { display: none; }
+  :global([data-theme='shachiku']) .hero-cover__pattern { display: block; }
+  .hero-cover__number {
+    font: 300 clamp(3rem, 6vw, 5rem)/1 var(--font-label);
+    color: var(--muted);
+    -webkit-text-fill-color: transparent;
+    -webkit-text-stroke: 1px var(--muted);
+    width: fit-content;
+    background: var(--surface);
+  }
+  .hero-cover__caption {
+    width: fit-content;
+    max-width: 100%;
+    background: var(--surface);
+    padding: 0.5rem 0.75rem 0 0;
+  }
+  .hero-cover__caption p {
+    color: var(--ink);
+    font: 500 1.125rem/1.5 var(--font-heading);
+  }
+  .hero-cover__caption span {
+    display: block;
+    color: var(--muted);
+    font: 0.6875rem/1.6 var(--font-label);
+    margin-top: 0.5rem;
+    overflow-wrap: anywhere;
+  }
+  .project-image {
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+  .project-image :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+  }
+  .project-image[data-fit='contain'] { aspect-ratio: auto; }
+  .project-image[data-fit='contain'] :global(img) { height: auto; object-fit: contain; }
+</style>
+
+<script>
+  const covers = document.querySelectorAll<HTMLElement>('.hero-cover');
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.setAttribute('data-shown', '');
+        observer.unobserve(entry.target);
+      }
+    },
+    { rootMargin: '900px 0px' },
+  );
+  for (const cover of covers) observer.observe(cover);
+</script>

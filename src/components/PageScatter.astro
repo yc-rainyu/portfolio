@@ -1,0 +1,162 @@
+---
+import { art, seededRandom, seasons, type Season } from '../lib/season-art';
+
+interface Props { chapter: number }
+const { chapter } = Astro.props;
+const pools: Record<Season, string[]> = {
+  spring: ['branch-01', 'blossom-02', 'petal-02', 'blossom-01'],
+  summer: ['maple-04', 'maple-05', 'wave-02', 'maple-03', 'maple-01'],
+  autumn: ['ginkgo-06', 'ginkgo-03', 'ginkgo-01', 'ginkgo-05', 'ginkgo-04'],
+  winter: ['pine-04', 'pine-03', 'pinecone-01', 'pine-02'],
+};
+const anchors = [
+  [[70, 19, 15], [60, 54, 18], [46, 85, 10]],
+  [[76, 14, 29], [75, 49, 20], [83, 82, 33]],
+  [[70, 8, 20], [42, 56, 38], [87, 80, 10], [59, 65, 24]],
+  [[19, 12, 40], [55, 38, 44], [85, 62, 35], [71, 49, 15]],
+  [[76, 10, 43], [38, 43, 38], [86, 67, 18], [58, 52, 24]],
+][chapter]!;
+const random = seededRandom(20261116 + chapter * 97);
+const round = (n: number) => Math.round(n * 100) / 100;
+const opacityRange: Record<Season, [number, number]> = {
+  spring: [.30, .50], summer: [.55, .75], autumn: [.35, .48], winter: [.20, .35],
+};
+const slots = anchors.map(([x, y, w], i) => ({
+  right: x! > 50, x: x!, y: y!, w: w!,
+  rotate: Math.round(random() * 260) - 130,
+  strength: random(),
+  depth: [0.05, 0.09, 0.14][i % 3]!,
+  pick: chapter + i,
+  mobile: i === 0,
+}));
+
+const bits = (
+  await Promise.all(
+    seasons.map((season) =>
+      Promise.all(
+        slots.map(async (slot) => {
+          const pool = pools[season];
+          const name = pool[slot.pick % pool.length]!;
+          const image = await art(season, name, name === 'pinecone-01' ? 480 : 900);
+          const winter = season === 'winter' && name !== 'pinecone-01';
+          const wave = name === 'wave-02';
+          const rotate = wave ? 0 : winter ? Math.round((slot.rotate % 50) - 25) : slot.rotate;
+          const style = [
+            `--src:${image.src}`,
+            `--x:${slot.x}`,
+            `--y:${slot.y + seasons.indexOf(season) * (slot.right ? 1.5 : -1.5)}`,
+            `--w:${wave ? 46 : winter ? round(slot.w * 1.12) : slot.w}`,
+            `--ratio:${image.ratio.toFixed(3)}`,
+            `--rotate:${rotate}deg`,
+            `--flip:${winter && !slot.right ? -1 : 1}`,
+            `--opacity:${round(opacityRange[season][0] + slot.strength * (opacityRange[season][1] - opacityRange[season][0]))}`,
+            `--depth:${slot.depth}`,
+          ].join(';');
+          return { season, mobile: slot.mobile, style };
+        }),
+      ),
+    ),
+  )
+).flat();
+---
+
+<div class="page-scatter" aria-hidden="true" data-scatter>
+  {bits.map((bit) => <span class:list={['bit', { 'bit--mobile': bit.mobile }]} data-season={bit.season} style={bit.style} />)}
+</div>
+
+<script>
+  const query = window.matchMedia('(min-width: 768px) and (prefers-reduced-motion: no-preference)');
+  const near = new Set<HTMLElement>();
+  let ticking = false;
+
+  const update = () => {
+    ticking = false;
+    if (!query.matches) return;
+    const mid = window.innerHeight / 2;
+    for (const layer of near) {
+      const top = layer.getBoundingClientRect().top;
+      for (const bit of layer.querySelectorAll<HTMLElement>('.bit')) {
+        if (!bit.offsetParent) continue;
+        const depth = Number(bit.style.getPropertyValue('--depth')) || 0;
+        bit.style.setProperty('--py', `${Math.round((mid - (top + bit.offsetTop)) * depth)}px`);
+      }
+    }
+  };
+
+  const request = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
+  };
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        const layer = entry.target as HTMLElement;
+        if (entry.isIntersecting) {
+          near.add(layer);
+          layer.setAttribute('data-shown', '');
+        } else near.delete(layer);
+      }
+      request();
+    },
+    { rootMargin: '900px 0px' },
+  );
+  for (const layer of document.querySelectorAll<HTMLElement>('[data-scatter]')) observer.observe(layer);
+
+  window.addEventListener('scroll', request, { passive: true });
+  window.addEventListener('resize', request, { passive: true });
+  new MutationObserver(request).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  query.addEventListener('change', () => {
+    if (query.matches) return request();
+    for (const bit of document.querySelectorAll<HTMLElement>('[data-scatter] .bit')) bit.style.removeProperty('--py');
+  });
+</script>
+
+<style>
+  .page-scatter {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    container-type: inline-size;
+    opacity: var(--layer-opacity, 1);
+  }
+
+  .bit {
+    display: none;
+    position: absolute;
+    left: calc(var(--x) * 1%);
+    top: calc(var(--y) * 1%);
+    width: calc(var(--w) * 1cqw);
+    aspect-ratio: var(--ratio);
+    background: var(--src) center / contain no-repeat;
+    opacity: var(--opacity);
+    /* Individual translation avoids transform minification issues */
+    translate: -50% calc(-50% + var(--py, 0px));
+    rotate: var(--rotate);
+    scale: var(--flip) 1;
+  }
+
+  :global(.js) .page-scatter:not([data-shown]) .bit {
+    background-image: none;
+  }
+
+  :global([data-theme='spring']) .bit[data-season='spring'],
+  :global([data-theme='summer']) .bit[data-season='summer'],
+  :global([data-theme='autumn']) .bit[data-season='autumn'],
+  :global([data-theme='winter']) .bit[data-season='winter'] {
+    display: block;
+  }
+
+
+  @media (max-width: 767px) {
+    .bit:not(.bit--mobile) { display: none !important; }
+    .bit {
+      left: 80%;
+      width: 65cqw;
+      opacity: calc(var(--opacity) * .45);
+    }
+  }
+</style>

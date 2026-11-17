@@ -1,0 +1,317 @@
+---
+import type { JourneyItem, SiteCopy } from '../lib/content';
+import { buildJourneyGraph, type JourneyRow } from '../lib/journey';
+
+interface Props {
+  items: JourneyItem[];
+  copy: SiteCopy;
+}
+
+const { items, copy } = Astro.props;
+const { rows, lanes } = buildJourneyGraph(items);
+
+const GAP = 20;
+const NODE_Y = 30;
+const BEND = 22;
+const WIDTH = lanes * GAP;
+const HEIGHT = NODE_Y + BEND + 2;
+const x = (lane: number) => GAP / 2 + lane * GAP;
+const bend = (fromLane: number, fromY: number, toLane: number) =>
+  `M${x(fromLane)} ${fromY}C${x(fromLane)} ${fromY + (NODE_Y - fromY) * 0.6} ${x(toLane)} ${fromY + (NODE_Y - fromY) * 0.4} ${x(toLane)} ${NODE_Y}`;
+
+function draw(row: JourneyRow, olderIsUp: boolean) {
+  const olderY = olderIsUp ? NODE_Y - BEND : NODE_Y + BEND;
+  const merging = new Set(row.merges.map((m) => m.lane));
+  const segments = row.lines.flatMap((line) => {
+    const out: { lane: number; branch: string; kind: string }[] = [];
+    if (line.older) {
+      const short = merging.has(line.lane);
+      out.push({ lane: line.lane, branch: line.branch, kind: `${olderIsUp ? 'top' : 'bottom'}${short ? '-short' : ''}` });
+    }
+    if (line.newer) out.push({ lane: line.lane, branch: line.branch, kind: olderIsUp ? 'bottom' : 'top' });
+    return out;
+  });
+  const curves = [
+    ...(row.forkFromLane !== undefined ? [{ branch: row.branch as string, d: bend(row.forkFromLane, olderY, row.lane) }] : []),
+    ...row.merges.map((m) => ({ branch: m.branch as string, d: bend(m.lane, olderY, m.intoLane) })),
+  ];
+  return { segments, curves };
+}
+
+const history = [...rows].reverse().map((row) => ({ row, ...draw(row, false) }));
+const vars = `--rows:${rows.length};--graph-width:${WIDTH}px;--gap:${GAP}px;--node-y:${NODE_Y}px;--bend:${BEND}px`;
+---
+
+<div class="history" style={vars}>
+  <p class="journey__head" aria-hidden="true">
+    <span>Graph</span>
+    <span>Description</span>
+  </p>
+
+  <div class="journey__graph journey__graph--history" aria-hidden="true">
+    {
+      history.map(({ row, segments, curves }) => (
+        <div class="cell">
+          {segments.map((s) => (
+            <span class={`line line--${s.kind} is-${s.branch}`} style={`--lane:${s.lane}`} />
+          ))}
+          <svg class="curves" width={WIDTH} height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`}>
+            {curves.map((c) => (
+              <path class={`is-${c.branch}`} d={c.d} />
+            ))}
+            {row.merges
+              .filter((m) => m.into === 'main')
+              .map(() => (
+                <circle class="node node--merge is-main" cx={x(0)} cy={NODE_Y} r="3.5" />
+              ))}
+            <circle class={`node is-${row.branch}`} cx={x(row.lane)} cy={NODE_Y} r="5.5" />
+          </svg>
+        </div>
+      ))
+    }
+    <div class="cell">
+      <span class="line line--top is-main" style="--lane:0"></span>
+      <svg class="curves" width={WIDTH} height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`}>
+        <circle class="node is-main" cx={x(0)} cy={NODE_Y} r="5.5" />
+      </svg>
+    </div>
+  </div>
+
+  <ol class="journey__list">
+    {
+      rows.map((row, i) => (
+        <li class="entry" style={`--row:${i + 1}`} data-scroll-anchor={`journey-${row.item.id}`}>
+          <p class="entry__year">{row.item.year}</p>
+          <div class="entry__body">
+            <p class="entry__meta">
+              {i === rows.length - 1 && <span class="entry__ref entry__ref--head">HEAD</span>}
+              {row.startsBranch && <span class={`entry__ref is-${row.branch}`}>{row.branch}</span>}
+            </p>
+            <h3 class="entry__title">{row.item.title}</h3>
+            <p class="entry__org">{row.item.org}</p>
+            <p class="entry__desc">{row.item.desc}</p>
+            {row.merges.map((m) => (
+              <p class="entry__merge">Merge branch '{m.branch}' into {m.into}</p>
+            ))}
+          </div>
+        </li>
+      ))
+    }
+    <li class="entry entry--root" style={`--row:${rows.length + 1}`} aria-hidden="true">
+      <div class="entry__body">
+        <p class="entry__meta"><span class="entry__ref is-main">main</span></p>
+        <p class="entry__title">Initial commit</p>
+        <p class="entry__org">{copy.hero.name}</p>
+      </div>
+    </li>
+  </ol>
+</div>
+
+<style>
+  .history {
+    display: none;
+  }
+
+  :global([data-theme='shachiku']) .history {
+    display: grid;
+  }
+
+  .history {
+    grid-template-columns: calc(var(--graph-width) + 1rem) minmax(0, 1fr);
+    grid-template-rows: auto repeat(calc(var(--rows) + 1), auto);
+    column-gap: 0.75rem;
+    border: var(--line-width) solid var(--line);
+    font-family: var(--font-mono);
+
+    --j-main: var(--ink);
+    --j-art: var(--muted);
+    --j-design: var(--b);
+    --j-frontend: var(--a);
+    --j-fullstack: var(--b);
+    --band: 2px;
+  }
+
+  .journey__head {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    padding-block: 0.375rem;
+    border-bottom: var(--line-width) solid var(--line);
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+
+  .journey__head span:first-child {
+    padding-inline-start: 0.75rem;
+  }
+
+  /* Share rows to keep branch lines aligned with the text */
+  .journey__graph,
+  .journey__list {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: 2 / span calc(var(--rows) + 1);
+  }
+
+  .journey__graph {
+    grid-column: 1;
+    padding-inline-start: 0.75rem;
+  }
+
+  .journey__list {
+    grid-column: 2;
+  }
+
+  .entry {
+    grid-row: calc(var(--rows) + 1 - var(--row));
+  }
+
+  .entry--root {
+    grid-row: calc(var(--rows) + 1);
+  }
+
+
+  .cell {
+    position: relative;
+  }
+
+  .line {
+    position: absolute;
+    left: calc(var(--gap) / 2 + var(--lane) * var(--gap) - var(--band) / 2);
+    width: var(--band);
+    border-radius: 999px;
+    background: var(--j);
+  }
+
+  .line--top {
+    top: 0;
+    height: var(--node-y);
+  }
+
+  .line--top-short {
+    top: 0;
+    height: calc(var(--node-y) - var(--bend));
+  }
+
+  .line--bottom {
+    top: var(--node-y);
+    bottom: 0;
+  }
+
+  .line--bottom-short {
+    top: calc(var(--node-y) + var(--bend));
+    bottom: 0;
+  }
+
+  .curves {
+    position: absolute;
+    top: 0;
+    left: 0;
+    max-width: none;
+    overflow: visible;
+  }
+
+  .curves path {
+    fill: none;
+    stroke: var(--j);
+    stroke-width: var(--band);
+    stroke-linecap: round;
+  }
+
+  .node {
+    fill: var(--j);
+    stroke: var(--bg);
+    stroke-width: 2;
+  }
+
+  .is-main {
+    --j: var(--j-main);
+  }
+
+  .is-art {
+    --j: var(--j-art);
+  }
+
+  .is-design {
+    --j: var(--j-design);
+  }
+
+  .is-frontend {
+    --j: var(--j-frontend);
+  }
+
+  .is-fullstack {
+    --j: var(--j-fullstack);
+  }
+
+
+  .entry {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0 1rem;
+    align-items: start;
+    padding: 0.75rem 1rem 0.875rem 0;
+    border-bottom: var(--line-width) solid var(--line);
+  }
+
+  .entry--root {
+    border-bottom: 0;
+  }
+
+  .entry__year {
+    order: 2;
+    color: var(--muted);
+    font-size: 0.8125rem;
+    line-height: 2.4;
+  }
+
+  .entry__body {
+    display: grid;
+    gap: 0.125rem;
+  }
+
+  .entry__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .entry__ref {
+    display: inline-block;
+    padding: 0.0625rem 0.5rem;
+    border: var(--line-width) solid var(--line);
+    border-inline-start: 3px solid var(--j, var(--muted));
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 0.75rem;
+    line-height: 1.6;
+  }
+
+  .entry__title {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1.9;
+  }
+
+  .entry__org,
+  .entry__desc {
+    font-size: 0.8125rem;
+    line-height: 1.8;
+  }
+
+  .entry__org {
+    color: var(--muted);
+  }
+
+  .entry__desc {
+    max-width: 44rem;
+    color: var(--ink);
+  }
+
+  .entry__merge {
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+</style>

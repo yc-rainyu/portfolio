@@ -1,0 +1,200 @@
+meta:
+  siteName: 張瑀晴 Yu-Ching Chang
+  title: 張瑀晴｜軟體工程師・全端與資料
+  description: 張瑀晴的作品集。具五年以上軟體開發經驗與視覺設計背景，作品涵蓋前端架構、Python 與 PostgreSQL 全端應用及資料專案。英國伯明罕大學電腦科學碩士。
+
+nav:
+  label: 主要導覽
+  menu: 選單
+  skip: 跳到主要內容
+  logo: YC
+  home: 回首頁
+  work: 精選作品
+  journey: 歷程
+  skills: 技能
+  index: 全部作品
+  about: 關於
+
+theme:
+  label: 主題
+  expand: 展開主題選項
+  names:
+    spring: 春主題
+    summer: 夏主題
+    autumn: 秋主題
+    winter: 冬主題
+    shachiku: 工（社畜）主題
+
+langSwitch:
+  label: 切換語言
+  other: English
+
+hero:
+  label: PORTFOLIO · 2026
+  display: 作品集
+  name: 張瑀晴
+  role: 軟體工程師｜全端・資料
+  tagline: 把看不見的，做成看得見的。
+  intro:
+    - 具五年以上軟體開發經驗，做過前端架構、風控系統與使用者分析平台，也以 Python、PostgreSQL 開發並上線全端個人專案。
+    - 視覺設計出身，英國伯明罕大學電腦科學碩士。
+  facts:
+    - 軟體開發 5 年以上
+    - 電腦科學碩士（Distinction）
+    - Python・TypeScript・SQL
+  stats:
+    - value: 5+
+      label: 年軟體開發經驗
+    - value: 20+
+      label: 件專案與作品
+    - value: MSc
+      label: 電腦科學碩士（Distinction）
+  factsBesideStats:
+    - Python・TypeScript・SQL
+  sideLabel: PROLOGUE
+  featuredLabel: 精選 01
+  status: 正在尋找全端／資料職缺
+  actions:
+    work: 瀏覽作品
+    cv: 查看履歷
+    github: GitHub
+    linkedin: LinkedIn
+
+chapters:
+  work:
+    label: CHAPTER 01 · SELECTED WORK
+    title: 精選作品
+  journey:
+    label: CHAPTER 02 · JOURNEY
+    title: 歷程
+  skills:
+    label: CHAPTER 03 · SKILLS
+    title: 技能
+  index:
+    label: CHAPTER 04 · ALL WORK
+    title: 全部作品
+  about:
+    label: CHAPTER 05 · ABOUT & CONTACT
+    title: 關於我
+
+work:
+  readMore: 查看專案
+  back: 回全部作品
+  prev: 上一個專案
+  next: 下一個專案
+  filterAll: 全部
+  filterLabel: 依分類篩選
+  count: '顯示 {n} 個專案'
+  links:
+    live: 線上版
+    github: GitHub
+    demo: Demo
+  categories:
+    data: 資料
+    fullstack: 全端
+    frontend: 前端
+    design: 設計
+  status:
+    live: 已上線
+    archived: 已封存
+    internal: 公司內部系統
+    unpublished: 未公開上線
+    research: 研究專案
+  fields:
+    year: 年份
+    role: 角色
+    stack: 技術
+    category: 分類
+    status: 狀態
+    title: 名稱
+    metrics: 重點數字
+  sections:
+    overview: 專案簡介
+
+skills:
+  note: 點陣表呈現各專案的技能使用程度，共五級，不代表熟練度。空白表示未標註使用。Practices 包含協作工具與工作流程。
+  legend:
+    caption: 點越大，在該專案中用得越多。
+    practices: Practices 包含協作工具與工作流程。
+    levels:
+      - 少量使用
+      - 輔助使用
+      - 經常使用
+      - 主要使用
+      - 核心使用
+
+journey:
+  eras:
+    design: 設計
+    frontend: 前端
+    data: 資料
+  branches:
+    art: 美術
+    design: 設計
+    frontend: 前端
+    fullstack: 全端
+
+about:
+  bio:
+    - 在日新軟體從事五年以上前端開發，期間升任資深前端工程師。主導過三條產品線採用的風控系統前端架構，也負責每日處理數百萬筆事件的使用者分析平台前端與追蹤層。
+    - 大學主修視覺傳達設計，先後擔任網頁設計師與前端工程師，2026 年以 Distinction 完成英國伯明罕大學電腦科學碩士。論文以滑鼠軌跡研究跨遊戲機器人偵測；個人專案 SpotClue 與 Job Sponsor Tracker 則以 Python、PostgreSQL 開發並上線，涵蓋資料處理、瀏覽器端模型推論與應用部署。
+  educationTitle: 學歷
+  education:
+    - school: 英國伯明罕大學 University of Birmingham
+      degree: 電腦科學碩士
+      period: 2025–2026
+      note: Distinction（英國制最高等第）
+    - school: 國立臺灣藝術大學
+      degree: 視覺傳達設計學士
+      period: 2013–2017
+  awardsTitle: 獎項與活動
+  awards:
+    - title: SPARK 2025 程式挑戰賽
+      org: GSA Capital
+      date: 2025 年 12 月
+      desc: 由英國量化交易公司 GSA Capital 舉辦的 21 天程式與量化挑戰，得分 34／35。
+    - title: 選前大補帖 voting-guide.tw
+      org: g0v 零時政府
+      date: 2023 年 2 月
+      desc: 參與開源專案資訊網站選前大補帖的前端開發。
+    - title: 程式導師實驗計畫
+      org: Lidemy 鋰學院
+      date: 2020 年 4 月
+      desc: 完成為期四個月的軟體工程訓練，每週投入 40 小時以上。
+    - title: The F2E 前端修煉精神時光屋
+      org: 六角學院
+      date: 2019 年 7 月
+      desc: 為期九週的挑戰，每週依新主題完成一個網頁介面，並在當週期限內提交。
+    - title: 金點設計獎 入圍
+      org: 台灣設計研究院
+      date: 2017 年 4 月
+    - title: 國際決賽 優秀獎
+      org: ASPaC 亞洲學生包裝設計競賽、日本包裝設計協會（JPDA）
+      date: 2017 年 1 月
+    - title: 台灣區 金獎
+      org: ASPaC 亞洲學生包裝設計競賽
+      date: 2016 年 11 月
+  languagesTitle: 語言
+  languages:
+    - name: 中文
+      level: 母語
+    - name: 台語
+      level: 母語
+    - name: 英文
+      level: 進階，碩士全英語授課
+    - name: 日文
+      level: 進階，JLPT N2
+  contactTitle: 聯絡
+  contact:
+    email: Email
+    linkedin: LinkedIn
+    github: GitHub
+
+footer:
+  copyright: 張瑀晴 Yu-Ching Chang
+  builtAt: 最後建置
+
+notFound:
+  title: 找不到這一頁
+  body: 此頁面不存在或已移除。
+  home: 回首頁
