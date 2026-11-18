@@ -75,10 +75,10 @@ export async function collectSiteText() {
 }
 
 async function collectDisplayText() {
-  const copy = parseYaml(await readFile(join(srcDir, 'content/site/zh.yaml'), 'utf8'));
-  const display = copy?.hero?.display;
+  const copy = parseYaml(await readFile(join(srcDir, 'content/site.yaml'), 'utf8'));
+  const display = typeof copy?.hero?.display === 'string' ? copy.hero.display : copy?.hero?.display?.zh;
   if (typeof display !== 'string' || display.length === 0) {
-    throw new Error('src/content/site/zh.yaml 缺少 hero.display');
+    throw new Error('src/content/site.yaml 缺少 hero.display.zh');
   }
   return display;
 }

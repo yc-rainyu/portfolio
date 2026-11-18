@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
-import { languages, type Lang } from '../config/site';
+import { type Lang } from '../config/site';
 
 export type ProjectEntry = CollectionEntry<'projects'>;
 export type Project = ProjectEntry['data'] & {
@@ -13,11 +13,32 @@ export type SiteCopy = CollectionEntry<'site'>['data'];
 export type JourneyItem = CollectionEntry<'journeyZh'>['data'];
 export type SkillGroup = CollectionEntry<'skills'>['data'];
 
+const zhDigits = '零一二三四五六七八九';
+
+/* Write a whole number from 1 to 99 in Chinese numerals */
+function zhNumber(n: number): string {
+  if (n < 10) return zhDigits[n]!;
+  const tens = Math.floor(n / 10);
+  return `${tens > 1 ? zhDigits[tens] : ''}十${n % 10 ? zhDigits[n % 10] : ''}`;
+}
+
+/* Replace known {name} placeholders in every string */
+function fill<T>(value: T, tokens: Record<string, string>): T {
+  if (typeof value === 'string') return value.replace(/\{(\w+)\}/g, (match, name) => tokens[name] ?? match) as T;
+  if (Array.isArray(value)) return value.map((item) => fill(item, tokens)) as T;
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, fill(item, tokens)])) as T;
+  }
+  return value;
+}
 
 export async function getCopy(lang: Lang): Promise<SiteCopy> {
   const entry = await getEntry('site', lang);
-  if (!entry) throw new Error(`找不到文案檔 src/content/site/${lang}.yaml`);
-  return entry.data;
+  if (!entry) throw new Error(`找不到文案檔 src/content/site.yaml`);
+  const total = (await getCollection('projects', ({ id }) => id.startsWith(`${lang}/`))).length;
+  const projectCount = (total % 5 === 0) ? String(total) : `${total - (total % 5)}+`;
+  const { years } = entry.data.values;
+  return fill(entry.data, { years: String(years), yearsZh: zhNumber(years), projectCount });
 }
 
 
@@ -29,33 +50,7 @@ function compareProjects(a: Project, b: Project): number {
   return yearOf(b) - yearOf(a) || b.start - a.start || a.slug.localeCompare(b.slug);
 }
 
-let slugCheck: Promise<void> | undefined;
-
-/* Require matching project slugs for language switching */
-function assertSameSlugs(): Promise<void> {
-  slugCheck ??= (async () => {
-    const all = await getCollection('projects');
-    const byLang = new Map<string, Set<string>>(languages.map((l) => [l, new Set<string>()]));
-    for (const entry of all) {
-      const [lang, slug] = entry.id.split('/');
-      if (lang && slug) byLang.get(lang)?.add(slug);
-    }
-    const [zh, en] = [byLang.get('zh')!, byLang.get('en')!];
-    const missing = [
-      ...[...zh].filter((s) => !en.has(s)).map((s) => `en/${s}.md`),
-      ...[...en].filter((s) => !zh.has(s)).map((s) => `zh/${s}.md`),
-    ];
-    if (missing.length > 0) {
-      throw new Error(
-        `專案必須中英文各一個同名檔。缺少：${missing.map((m) => `src/content/projects/${m}`).join('、')}`,
-      );
-    }
-  })();
-  return slugCheck;
-}
-
 export async function getProjects(lang: Lang): Promise<Project[]> {
-  await assertSameSlugs();
   const entries = await getCollection('projects', ({ id }) => id.startsWith(`${lang}/`));
   return entries
     .map((entry) => ({ ...entry.data, slug: entry.id.slice(lang.length + 1), lang, entry }))
@@ -80,7 +75,7 @@ export function formatYears(p: { start: number; end?: number }): string {
 export async function getJourney(lang: Lang): Promise<JourneyItem[]> {
   const entries = await getCollection(lang === 'zh' ? 'journeyZh' : 'journeyEn');
   if (entries.length === 0) {
-    throw new Error(`src/content/journey/${lang}.yaml 讀不到任何條目，請檢查 YAML 格式`);
+    throw new Error(`src/content/journey.yaml 讀不到任何條目，請檢查 YAML 格式`);
   }
   return entries.map((e) => e.data).sort((a, b) => a.order - b.order);
 }

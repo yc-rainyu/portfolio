@@ -1,5 +1,6 @@
 ---
 import ProjectNumber from './ProjectNumber.astro';
+import { featuredSkills } from '../lib/skills';
 import ProjectCover from './ProjectCover.astro';
 import ProjectLinks from './ProjectLinks.astro';
 import Metrics from './Metrics.astro';
@@ -41,7 +42,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
             <p class="work__summary">{project.summary}</p>
             <Metrics metrics={project.metrics} label={copy.work.fields.metrics} />
             <ul class="chips" aria-label={copy.work.fields.stack}>
-              {project.stack.map((tech) => <li class="chip">{tech}</li>)}
+              {featuredSkills(project).map((tech) => <li class="chip">{tech}</li>)}
             </ul>
             <div class="work__actions">
               <ProjectLinks project={project} copy={copy} />

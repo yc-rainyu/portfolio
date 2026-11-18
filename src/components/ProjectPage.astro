@@ -7,6 +7,7 @@ import Metrics from './Metrics.astro';
 import ProjectCover from './ProjectCover.astro';
 import ProjectNumber from './ProjectNumber.astro';
 import ProjectWashes from './ProjectWashes.astro';
+import CodeProjectHeader from './CodeProjectHeader.astro';
 import type { Lang } from '../config/site';
 import { homePath, workPath } from '../lib/i18n';
 import { formatYears, getCopy, getProjects, type Project } from '../lib/content';
@@ -23,7 +24,7 @@ const { Content, headings } = await render(project.entry);
 const overview = copy.work.sections.overview;
 const actual = headings.filter((h) => h.depth === 2).map((h) => h.text.trim());
 if (actual.some((text) => text !== overview) || actual.length > 1) {
-  throw new Error(`src/content/projects/${project.entry.id}.md may only use one second-level heading, "${overview}". Found: ${actual.join(', ')}`);
+  throw new Error(`src/content/projects/${project.slug}.md (${lang}) may only use one second-level heading, "${overview}". Found: ${actual.join(', ')}`);
 }
 
 const all = await getProjects(lang);
@@ -34,6 +35,32 @@ const heroProject = project.heroCover ? { ...project, cover: project.heroCover, 
 const prev = all[position - 1];
 const next = all[position + 1];
 const title = `${project.title} | ${copy.meta.siteName}`;
+
+interface SourceToken { kind: 'key' | 'punct' | 'string' | 'plain'; text: string; href?: string; }
+const external = (href: string) => /^https?:\/\//.test(href);
+function inlineTokens(text: string): SourceToken[] {
+  const tokens: SourceToken[] = [];
+  const pattern = /(!?)\[([^\]]*)\]\(([^)\s]+)\)/g;
+  let last = 0;
+  for (const match of text.matchAll(pattern)) {
+    const [whole, bang, label, url] = match;
+    if (match.index > last) tokens.push({ kind: 'plain', text: text.slice(last, match.index) });
+    tokens.push({ kind: 'punct', text: `${bang}[` });
+    tokens.push(bang ? { kind: 'string', text: label! } : { kind: 'string', text: label!, href: url });
+    tokens.push({ kind: 'punct', text: `](${url})` });
+    last = match.index + whole.length;
+  }
+  if (last < text.length) tokens.push({ kind: 'plain', text: text.slice(last) });
+  return tokens;
+}
+// Tokenise the Markdown source for the coder theme's source view
+const sourceLines = (project.entry.body ?? '').trimEnd().split('\n').map((line): SourceToken[] => {
+  const heading = line.match(/^(#{1,6}\s+)(.*)$/);
+  if (heading) return [{ kind: 'key', text: heading[1]! }, { kind: 'plain', text: heading[2]! }];
+  const item = line.match(/^(\s*(?:[-*]|\d+\.)\s+)(.*)$/);
+  if (item) return [{ kind: 'punct', text: item[1]! }, ...inlineTokens(item[2]!)];
+  return inlineTokens(line);
+});
 ---
 
 <Base lang={lang} title={title} description={project.summary}>
@@ -44,6 +71,8 @@ const title = `${project.title} | ${copy.meta.siteName}`;
       <p class="project__back">
         <a href={`${homePath(lang)}#index`}>← {copy.work.back}</a>
       </p>
+
+      <CodeProjectHeader project={project} preview={heroProject} copy={copy} number={number} />
 
       <header class="project__header" data-cover-layout={project.coverLayout} data-scroll-anchor="project-header">
         <div class="project__intro stack veil" data-scroll-anchor="project-intro" data-scroll-priority="1">
@@ -92,8 +121,24 @@ const title = `${project.title} | ${copy.meta.siteName}`;
       }
 
       {!overlap && <div class="project__cover" data-scroll-anchor="project-cover">{project.cover ? <a href={project.cover.src} target="_blank" rel="noopener" aria-label={project.coverAlt ?? project.title}><ProjectCover project={project} number={number} fit="contain" /></a> : <ProjectCover project={project} number={number} />}</div>}
-      <div class="prose project__body veil" data-scroll-anchor="project-body">
-        <Content />
+      <div class="readme" data-readme data-view="preview">
+        <div class="readme__bar">
+          <span class="readme__file"><span class="readme__icon" aria-hidden="true">M↓</span> README.md</span>
+          <div class="readme__views" role="group" aria-label="README view">
+            <button type="button" data-readme-view="preview" aria-pressed="true">Preview</button>
+            <button type="button" data-readme-view="source" aria-pressed="false">Source</button>
+          </div>
+        </div>
+        <div class="prose project__body veil" data-scroll-anchor="project-body">
+          <Content />
+        </div>
+        <div class="readme__source code-lines" data-code-lines data-nosnippet>
+          {sourceLines.map((tokens, i) => (
+            <p class="code__line" data-active={i === sourceLines.length - 1 ? '' : undefined}><span class="code__number" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>{tokens.map((token) => token.href
+              ? <a class={`tok tok--${token.kind}`} href={token.href} target={external(token.href) ? '_blank' : undefined} rel={external(token.href) ? 'noopener' : undefined}>{token.text}</a>
+              : <span class={`tok tok--${token.kind}`}>{token.text}</span>)}</p>
+          ))}
+        </div>
       </div>
 
       <nav class="project__nav" data-scroll-anchor="project-nav" aria-label={`${copy.work.prev} / ${copy.work.next}`}>
@@ -121,6 +166,16 @@ const title = `${project.title} | ${copy.meta.siteName}`;
 </Base>
 
 <script>
+  import { initCodeLines } from '../lib/code-lines';
+  initCodeLines();
+  for (const readme of document.querySelectorAll<HTMLElement>('[data-readme]')) {
+    readme.addEventListener('click', (event) => {
+      const button = (event.target as HTMLElement).closest<HTMLElement>('[data-readme-view]');
+      if (!button) return;
+      readme.dataset.view = button.dataset.readmeView;
+      for (const other of readme.querySelectorAll('[data-readme-view]')) other.setAttribute('aria-pressed', String(other === button));
+    });
+  }
   for (const image of document.querySelectorAll<HTMLImageElement>('.project__body img')) {
     if (image.closest('a')) continue;
     const link = document.createElement('a');
@@ -169,14 +224,45 @@ const title = `${project.title} | ${copy.meta.siteName}`;
     [data-cover-layout='overlap'] .project__details { grid-column: 1 / -1; grid-row: 2; }
     .project__hero-cover:focus-visible { mask-image: none; opacity: 1; }
   }
-  :global([data-theme='shachiku']) .project__header { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
-  :global([data-theme='shachiku']) .project__intro,
-  :global([data-theme='shachiku']) .project__hero-cover,
-  :global([data-theme='shachiku']) .project__details { grid-column: 1; grid-row: auto; }
-  :global([data-theme='shachiku']) .project__hero-cover { max-width: 57rem; margin-top: 0; mask-image: none; opacity: 1; }
-  :global([data-theme='shachiku']) .project__ornament { height: 4rem; --number-size: 4rem; --code-number-display: block; }
-  :global([data-theme='shachiku']) .project__title::before { content: '# '; color: var(--a); }
+  :global([data-theme='shachiku']) .project__back { margin-bottom: 1rem; }
+  :global([data-theme='shachiku']) .project > .container > :global(.source-lines),
+  :global([data-theme='shachiku']) .project__header[data-cover-layout],
+  :global([data-theme='shachiku']) .project__metrics,
+  :global([data-theme='shachiku']) .project__cover { display: none; }
+  .readme { display: contents; }
+  .readme__bar, .readme__source { display: none; }
+  :global([data-theme='shachiku']) .readme { display: block; margin-top: 2rem; }
+  :global([data-theme='shachiku']) .readme__bar {
+    display: flex; align-items: stretch; justify-content: space-between; min-height: 2.75rem;
+    border: 1px solid var(--line); border-bottom: 0; background: var(--surface); color: var(--muted); font-size: .6875rem;
+  }
+  .readme__file { display: flex; align-items: center; gap: .625rem; padding-inline: 1rem; color: var(--ink); background: var(--bg); box-shadow: inset 0 -2px 0 var(--a); }
+  .readme__icon { color: var(--a); font-size: .625rem; }
+  .readme__views { display: flex; }
+  :global(html:not(.js)) .readme__views { display: none; }
+  .readme__views button { padding-inline: 1rem; border: 0; border-left: 1px solid var(--line); background: transparent; color: var(--muted); font: inherit; cursor: pointer; }
+  .readme__views button:hover { color: var(--ink); }
+  .readme__views button[aria-pressed='true'] { color: var(--ink); background: var(--bg); }
+  :global([data-theme='shachiku']) .project__body {
+    max-width: none; margin-top: 0; padding: 1.75rem clamp(1rem, 3vw, 2.5rem) 2.5rem;
+    border: 1px solid var(--line); background: var(--bg); font-size: .875rem; line-height: 1.95;
+  }
+  :global([data-theme='shachiku']) .project__body::before { content: none; }
+  :global([data-theme='shachiku']) .readme[data-view='source'] .project__body { display: none; }
+  :global([data-theme='shachiku']) .readme[data-view='source'] .readme__source {
+    display: block; padding-block: 1rem 1.25rem; border: 1px solid var(--line); background: var(--bg);
+    --code-size: .8125rem; --code-leading: 1.85;
+  }
+  .readme__source .code__line { min-height: calc(var(--code-leading) * var(--code-size)); white-space: pre-wrap; }
+  :global([data-theme='shachiku']) .project__body :global(h2) { border: 0; padding-top: 0; font-size: 1.125rem; }
   :global([data-theme='shachiku']) .project__body :global(h2)::before { content: '## '; color: var(--a); }
+  :global([data-theme='shachiku']) .project__body :global(p),
+  :global([data-theme='shachiku']) .project__body :global(ul),
+  :global([data-theme='shachiku']) .project__body :global(ol) { max-width: 88ch; }
+  :global([data-theme='shachiku']) .project__body :global(li)::marker { color: var(--a); }
+  :global([data-theme='shachiku']) .project__body :global(li + li) { margin-top: 1rem; }
+  :global([data-theme='shachiku']) .project__nav { margin-top: 2rem; padding-top: 0; border-top: 0; }
+  :global([data-theme='shachiku']) .project__nav a { background: transparent; }
   @media (max-width: 767px) {
     .project__header { padding-top: 3.5rem; gap: 1.5rem; }
     .project__ornament { --sprig-opacity: .4; }

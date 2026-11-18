@@ -7,7 +7,8 @@
     - SQL
     - PostgreSQL
     - PostGIS
-    - pg_trgm
+    - name: pg_trgm
+      detail: PostgreSQL extension
     - SQLite
 
 - id: backend
@@ -17,11 +18,11 @@
     - Pydantic
     - SQLAlchemy
     - Alembic
-    - Flask
     - Node.js
     - name: REST
       aliases: [REST API]
-    - OpenAPI
+    - name: OpenAPI
+      detail: TypeScript type generation
     - GraphQL
     - WebSocket
     - SSE
@@ -108,7 +109,8 @@
   items:
     - Agile/Scrum
     - Jira
-    - GitLab
+    - name: GitHub/GitLab
+      aliases: [GitHub, GitLab]
     - code review
     - technical documentation
     - Figma

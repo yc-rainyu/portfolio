@@ -1,0 +1,421 @@
+values:
+  years: 5
+meta:
+  siteName:
+    zh: 張瑀晴 Yu-Ching Chang
+    en: Yu-Ching Chang
+  title:
+    zh: 張瑀晴・作品集｜軟體工程師
+    en: Yu-Ching Chang・Portfolio | Software Engineer
+  description:
+    zh: 張瑀晴的作品集。有{yearsZh}年以上軟體開發經驗，具視覺設計背景，作品涵蓋前端架構、Python 與 PostgreSQL 全端應用及資料專案。畢業於英國伯明罕大學電腦科學碩士班。
+    en: Portfolio of Yu-Ching Chang, a software engineer with {years}+ years of experience and a background in visual design. Work includes front-end architecture, full-stack applications with Python and PostgreSQL, and data projects. MSc Computer Science, University of Birmingham.
+nav:
+  label:
+    zh: 主要導覽
+    en: Main navigation
+  menu:
+    zh: 選單
+    en: Menu
+  skip:
+    zh: 跳到主要內容
+    en: Skip to main content
+  logo: YC
+  home:
+    zh: 回首頁
+    en: Home
+theme:
+  label:
+    zh: 主題
+    en: Theme
+  expand:
+    zh: 展開主題選項
+    en: show theme options
+  names:
+    spring:
+      zh: 春季主題
+      en: Spring theme
+    summer:
+      zh: 夏季主題
+      en: Summer theme
+    autumn:
+      zh: 秋季主題
+      en: Autumn theme
+    winter:
+      zh: 冬季主題
+      en: Winter theme
+    shachiku:
+      zh: 社畜主題
+      en: Coder theme
+langSwitch:
+  label:
+    zh: 切換語言
+    en: Switch language
+  other:
+    zh: English
+    en: 中文
+hero:
+  label: PORTFOLIO · 2026
+  display:
+    zh: 作品集
+    en: Portfolio
+  name:
+    zh: 張瑀晴
+    en: Yu-Ching Chang
+  role:
+    zh: 軟體工程師｜全端・資料
+    en: Software Engineer | Full-stack · Data
+  tagline:
+    zh: 把看不見的，做成看得見的。
+    en: Making the unseen visible.
+  intro:
+    - zh: 有{yearsZh}年以上軟體開發經驗，曾負責前端架構、風控系統與使用者行為分析平台，也用 Python、PostgreSQL 開發並上線全端個人專案。
+      en: Software engineer with {years}+ years of development experience, including front-end architecture, risk monitoring and user behaviour analytics. Built and deployed personal full-stack projects with Python and PostgreSQL.
+    - zh: 具視覺傳達設計背景，並取得英國伯明罕大學電腦科學碩士學位。
+      en: A background in visual communication design and an MSc in Computer Science from the University of Birmingham.
+  facts:
+    - zh: "{years} 年以上軟體開發經驗"
+      en: "{years}+ years in software development"
+    - zh: 電腦科學碩士（Distinction）
+      en: MSc Computer Science (Distinction)
+    - zh: Python・TypeScript・SQL
+      en: Python · TypeScript · SQL
+  stats:
+    - value: "{years}+"
+      label:
+        zh: 年軟體開發經驗
+        en: years in software development
+    - value: "{projectCount}"
+      label:
+        zh: 件專案與作品
+        en: projects
+    - value: MSc
+      label:
+        zh: 電腦科學碩士（Distinction）
+        en: Computer Science (Distinction)
+  factsBesideStats:
+    - zh: Python・TypeScript・SQL
+      en: Python · TypeScript · SQL
+  sideLabel: PROLOGUE
+  featuredLabel:
+    zh: 精選 01
+    en: Selected 01
+  status:
+    zh: 尋找全端與資料相關職缺
+    en: Open to full-stack and data roles
+  actions:
+    work:
+      zh: 瀏覽作品
+      en: View work
+    cv:
+      zh: 查看履歷
+      en: View CV
+    github: GitHub
+    linkedin: LinkedIn
+chapters:
+  work:
+    label: CHAPTER 01 · SELECTED WORK
+    title:
+      zh: 精選作品
+      en: Selected work
+  journey:
+    label: CHAPTER 02 · JOURNEY
+    title:
+      zh: 歷程
+      en: Journey
+  skills:
+    label: CHAPTER 03 · SKILLS
+    title:
+      zh: 技能
+      en: Skills
+  index:
+    label: CHAPTER 04 · ALL WORK
+    title:
+      zh: 全部作品
+      en: All work
+  about:
+    label: CHAPTER 05 · ABOUT & CONTACT
+    title:
+      zh: 關於我
+      en: About and contact
+    nav:
+      zh: 關於
+      en: About
+work:
+  readMore:
+    zh: 查看專案內容
+    en: View project details
+  back:
+    zh: 回到全部作品
+    en: Back to all work
+  prev:
+    zh: 上一個專案
+    en: Previous project
+  next:
+    zh: 下一個專案
+    en: Next project
+  filterAll:
+    zh: 全部
+    en: All
+  filterLabel:
+    zh: 依分類篩選
+    en: Filter by category
+  count:
+    zh: 顯示 {n} 件作品
+    en: Showing {n} projects
+  links:
+    live:
+      zh: 瀏覽網站
+      en: Visit site
+    github: GitHub
+    demo:
+      zh: Demo
+      en: View demo
+  categories:
+    data:
+      zh: 資料
+      en: Data
+    fullstack:
+      zh: 全端
+      en: Full-stack
+    frontend:
+      zh: 前端
+      en: Front-end
+    design:
+      zh: 設計
+      en: Design
+  status:
+    live:
+      zh: 已上線
+      en: Live
+    archived:
+      zh: 已封存
+      en: Archived
+    internal:
+      zh: 公司內部系統
+      en: Internal company system
+    unpublished:
+      zh: 尚未公開上線
+      en: Not publicly deployed
+    research:
+      zh: 研究專案
+      en: Research project
+  fields:
+    year:
+      zh: 年份
+      en: Year
+    role:
+      zh: 角色
+      en: Role
+    stack:
+      zh: 使用技術
+      en: Technologies
+    category:
+      zh: 分類
+      en: Category
+    status:
+      zh: 狀態
+      en: Status
+    title:
+      zh: 名稱
+      en: Project
+    metrics:
+      zh: 專案重點
+      en: Project highlights
+  sections:
+    overview:
+      zh: 專案簡介
+      en: Overview
+skills:
+  legend:
+    caption:
+      zh: 點越大，在該專案中用得越多。
+      en: Larger dots mean more use in that project.
+    practices:
+      zh: Practices 類別包含協作工具與開發流程。
+      en: The Practices group includes collaboration tools and development workflows.
+    levels:
+      - zh: 少量使用
+        en: Limited use
+      - zh: 輔助使用
+        en: Supporting use
+      - zh: 經常使用
+        en: Regular use
+      - zh: 主要使用
+        en: Primary use
+      - zh: 核心使用
+        en: Core use
+journey:
+  eras:
+    design:
+      zh: 設計
+      en: Design
+    frontend:
+      zh: 前端
+      en: Front-end
+    data:
+      zh: 資料
+      en: Data
+  branches:
+    art:
+      zh: 美術
+      en: Art
+    design:
+      zh: 設計
+      en: Design
+    frontend:
+      zh: 前端
+      en: Front-end
+    fullstack:
+      zh: 全端
+      en: Full-stack
+about:
+  bio:
+    - zh: 在日新軟體從事五年以上前端開發，期間升任資深前端工程師，主導風控系統的前端架構，系統後續由三條產品線採用。也負責使用者行為分析平台的前端與追蹤層，平台每日處理數百萬筆事件。
+      en: Worked in front-end development at Neutec for over five years, progressing to Senior Front-end Engineer. Led the front-end architecture of a risk-management system later adopted by three product lines, and built the front end and tracking layer of a user behaviour analytics platform handling millions of events a day.
+    - zh: 大學主修視覺傳達設計，畢業後先後擔任網頁設計師與前端工程師。2026 年以 Distinction 取得英國伯明罕大學電腦科學碩士學位，碩士論文研究以滑鼠軌跡跨遊戲偵測機器人。個人專案 SpotClue 與 Job Sponsor Tracker 使用 Python、PostgreSQL 開發並上線，涵蓋資料處理、瀏覽器端模型推論與應用部署。
+      en: Studied visual communication design before working as a web designer and front-end engineer. Completed an MSc in Computer Science at the University of Birmingham in 2026 with Distinction, researching cross-game bot detection from mouse trajectories. Built and deployed SpotClue and Job Sponsor Tracker with Python and PostgreSQL, covering data processing, browser-based inference and application deployment.
+  educationTitle:
+    zh: 學歷
+    en: Education
+  education:
+    - school:
+        zh: 英國伯明罕大學 University of Birmingham
+        en: University of Birmingham, UK
+      degree:
+        zh: 電腦科學碩士
+        en: MSc, Computer Science
+      period: 2025–2026
+      note:
+        zh: Distinction（英國制最高等第）
+        en: Distinction (81.7%)
+    - school:
+        zh: 國立臺灣藝術大學
+        en: National Taiwan University of Arts, Taiwan
+      degree:
+        zh: 視覺傳達設計學士
+        en: BFA, Visual Communication Design
+      period: 2013–2017
+  awardsTitle:
+    zh: 獎項與活動
+    en: Awards and activities
+  awards:
+    - title:
+        zh: SPARK 2025 程式挑戰賽
+        en: SPARK 2025 Coding Challenge
+      org: GSA Capital
+      date:
+        zh: 2025 年 12 月
+        en: Dec. 2025
+      desc:
+        zh: 由英國量化交易公司 GSA Capital 舉辦的 21 天程式與量化挑戰，得分 34／35。
+        en: 21-day coding and quantitative challenge. Scored 34/35.
+    - title:
+        zh: 選前大補帖 voting-guide.tw
+        en: voting-guide.tw
+      org:
+        zh: g0v 零時政府
+        en: g0v Taiwan civic tech community
+      date:
+        zh: 2023 年 2 月
+        en: Feb. 2023
+      desc:
+        zh: 參與選前大補帖的前端開發，這是一個開源的選前資訊網站。
+        en: Contributed to the front-end development of voting-guide.tw, an open-source pre-election information site.
+    - title:
+        zh: 程式導師實驗計畫
+        en: Lidemy Mentor Program
+      org:
+        zh: Lidemy 鋰學院
+        en: Lidemy
+      date:
+        zh: 2020 年 4 月
+        en: Apr. 2020
+      desc:
+        zh: 完成為期四個月的軟體工程訓練，每週投入 40 小時以上。
+        en: Completed a four-month software engineering programme involving over 40 hours of study each week.
+    - title:
+        zh: The F2E 前端修煉精神時光屋
+        en: The F2E Front-end Challenge
+      org:
+        zh: 六角學院
+        en: Hexschool
+      date:
+        zh: 2019 年 7 月
+        en: Jul. 2019
+      desc:
+        zh: 參加為期九週的挑戰，每週在期限內完成並提交一個指定主題的網頁介面。
+        en: Took part in a nine-week challenge, completing and submitting a web interface on a new theme by each weekly deadline.
+    - title:
+        zh: 金點設計獎入圍
+        en: Golden Pin Design Award (Finalist)
+      org:
+        zh: 台灣設計研究院
+        en: Taiwan Design Research Institute
+      date:
+        zh: 2017 年 4 月
+        en: Apr. 2017
+    - title:
+        zh: 國際決賽優秀獎
+        en: Excellence Award (international final)
+      org:
+        zh: ASPaC 亞洲學生包裝設計競賽、日本包裝設計協會（JPDA）
+        en: ASPaC and Japan Package Design Association (JPDA)
+      date:
+        zh: 2017 年 1 月
+        en: Jan. 2017
+    - title:
+        zh: 台灣區金獎
+        en: Gold Award (Taiwan round)
+      org:
+        zh: ASPaC 亞洲學生包裝設計競賽
+        en: Asia Student Package Design Competition (ASPaC)
+      date:
+        zh: 2016 年 11 月
+        en: Nov. 2016
+  languagesTitle:
+    zh: 語言
+    en: Languages
+  languages:
+    zh:
+      - name: 中文
+        level: 母語
+      - name: 台語
+        level: 母語
+      - name: 英文
+        level: 進階，碩士全英語授課
+      - name: 日文
+        level: 進階，JLPT N2
+    en:
+      - name: English
+        level: Advanced, MSc taught in English
+      - name: Mandarin
+        level: Native, Traditional Chinese
+      - name: Taiwanese
+        level: Native
+      - name: Japanese
+        level: Advanced, JLPT N2
+  contactTitle:
+    zh: 聯絡
+    en: Contact
+  contact:
+    email: Email
+    linkedin: LinkedIn
+    github: GitHub
+footer:
+  copyright:
+    zh: 張瑀晴 Yu-Ching Chang
+    en: Yu-Ching Chang
+  builtAt:
+    zh: 建置時間
+    en: Built on
+notFound:
+  title:
+    zh: 找不到這一頁
+    en: Page not found
+  body:
+    zh: 這個頁面不存在或已移除。
+    en: This page does not exist or has been removed.
+  home:
+    zh: 回首頁
+    en: Back to home

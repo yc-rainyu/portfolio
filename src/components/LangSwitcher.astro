@@ -19,6 +19,7 @@ const href = pathInLang(Astro.url.pathname, target);
 
 <script>
   import { captureReadingPosition, saveLanguagePosition, type ReadingPosition } from '../lib/reading-position';
+  import { sections } from '../lib/sections';
 
   for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-lang-switch]')) {
     const syncHref = (position?: ReadingPosition) => {
@@ -28,7 +29,7 @@ const href = pathInLang(Astro.url.pathname, target);
       // Use shared section anchors when switching languages
       const section = position?.section.replace(/^section-/, '');
       target.hash = /^\/(en|zh)\/$/.test(target.pathname)
-        ? section && ['work', 'journey', 'skills', 'index', 'about'].includes(section) ? section : position ? '' : location.hash
+        ? section && sections.some(({ id }) => id === section) ? section : position ? '' : location.hash
         : '';
       link.href = target.href;
       return target;

@@ -4,6 +4,7 @@ import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import { satteri } from '@astrojs/markdown-satteri';
 import { buildFonts } from './scripts/subset-fonts.mjs';
+import { site } from './src/config/site';
 
 /** @returns {import('astro').AstroIntegration} */
 
@@ -54,7 +55,7 @@ function externalLinksNewTab() {
 }
 
 export default defineConfig({
-  site: 'https://ycrainyu.com',
+  site: site.url,
   output: 'static',
   trailingSlash: 'always',
   build: { format: 'directory', inlineStylesheets: 'always' },

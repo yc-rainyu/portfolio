@@ -14,7 +14,10 @@ interface Props {
 const { lang, copy } = Astro.props;
 const home = homePath(lang);
 
-const items = sections.map((section) => ({ ...section, label: copy.nav[section.id] }));
+const items = sections.map((section) => {
+  const chapter = copy.chapters[section.id];
+  return { ...section, label: chapter.nav ?? chapter.title };
+});
 ---
 
 <div class="header-sentinel" data-header-sentinel aria-hidden="true"></div>

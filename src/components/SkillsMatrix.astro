@@ -26,8 +26,7 @@ const dotTone = (skill: string, project: string) => {
 
 <div class="skills">
   <div class="matrix veil" data-matrix>
-    <table style={`--projects:${matrix.columns.length}`}>
-      <caption class="visually-hidden">{copy.skills.note}</caption>
+    <table style={`--projects:${matrix.columns.length}`} aria-labelledby="skills" aria-describedby="skills-scale">
       <colgroup>
         <col />
         {matrix.columns.map(() => <col data-col />)}
@@ -67,7 +66,7 @@ const dotTone = (skill: string, project: string) => {
     </table>
     <aside class="matrix__key">
     <div class="matrix__scale">
-      <p>{copy.skills.legend.caption}</p>
+      <p id="skills-scale">{copy.skills.legend.caption}</p>
       <ol class="matrix__scale-dots">
         {copy.skills.legend.levels.map((level, i) => (
           <li title={level}><span class="matrix__dot" data-weight={i + 1} aria-hidden="true" /><span class="visually-hidden">{level}</span></li>
@@ -104,7 +103,6 @@ const dotTone = (skill: string, project: string) => {
       ))
     }
   </dl>
-  <p class="visually-hidden">{copy.skills.note}</p>
 </div>
 
 <script>

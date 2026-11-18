@@ -1,0 +1,117 @@
+- year: 2010
+  title:
+    zh: 新竹女中美術班
+    en: Fine arts programme
+  org:
+    zh: 國立新竹女子高級中學
+    en: National Hsinchu Girls’ Senior High School
+  desc:
+    zh: 接受美術與手繪訓練，培養視覺觀察能力。
+    en: Trained in fine art and drawing to develop visual observation skills.
+  era: design
+  branch: art
+- year: 2013
+  title:
+    zh: 視覺傳達設計
+    en: Visual Communication Design
+  org:
+    zh: 國立臺灣藝術大學
+    en: National Taiwan University of Arts
+  desc:
+    zh: 主修視覺傳達設計，學習平面設計與視覺表達。
+    en: Developed a foundation in visual communication and graphic design.
+  era: design
+  branch: design
+  from: art
+- year: 2016–17
+  title:
+    zh: ASPaC 金獎・金點設計獎入圍
+    en: ASPaC Gold Award · Golden Pin Design Award finalist
+  org:
+    zh: 亞洲學生包裝設計競賽
+    en: Asia Student Package Design Competition
+  desc:
+    zh: 感溫變色的食物痠痛貼布獲台灣區金獎與國際決賽優秀獎。畢業製作則讓灰塵附著在路燈旗上，隨累積量改變圖樣，呈現空氣污染，入圍金點設計獎。
+    en: A food-themed pain-relief patch that changes colour with body heat won the Gold Award in the Taiwan round and an Excellence Award at the international final. The graduation project collected dust on street-lamp banners, changing their pictures as it built up to make air pollution visible, and was a Golden Pin Design Award finalist.
+  era: design
+  branch: design
+- year: 2017
+  title:
+    zh: 前端設計師
+    en: Front-end Designer
+  org:
+    zh: 桓基科技
+    en: Hgiga Inc.
+  desc:
+    zh: 為自來水公司、衛福部、內政部等五個以上政府機關設計並維護網站，全數符合無障礙 AA 等級。
+    en: Designed and maintained websites for 5+ government agencies, including Taiwan Water Corporation, the Ministry of Health and Welfare and the Ministry of the Interior, all built to level AA of the government accessibility standard.
+  era: design
+  branch: frontend
+  from: design
+  merges:
+    - art
+- year: 2019
+  title:
+    zh: 轉職準備
+    en: Preparing to change career
+  org:
+    zh: 六角學院・Lidemy
+    en: Hexschool · Lidemy
+  desc:
+    zh: 參加九週的 F2E 前端修煉精神時光屋，接著完成四個月的程式導師實驗計畫。
+    en: Took part in the nine-week The F2E Front-end Challenge, then completed the four-month Lidemy Mentor Program.
+  era: frontend
+  branch: frontend
+- year: 2020
+  title:
+    zh: 前端工程師
+    en: Front-end Engineer
+  org:
+    zh: 日新軟體
+    en: Neutec Ltd.
+  desc:
+    zh: 轉職為前端工程師。
+    en: Moved into front-end engineering.
+  era: frontend
+  branch: frontend
+  merges:
+    - design
+- year: 2023
+  title:
+    zh: 資深前端工程師
+    en: Senior Front-end Engineer
+  org:
+    zh: 日新軟體
+    en: Neutec Ltd.
+  desc:
+    zh: 主導風控監控系統的前端架構，由三人團隊在三個月內完成上線，後續由三條產品線採用。任職期間也參與使用者行為分析平台、遊戲聊天室、電競賽事平台與設計師 UI 元件庫的開發。
+    en: Led the front-end architecture of a risk-management system launched in three months by a three-person team and adopted by three product lines. Work at Neutec also included a user analytics platform, a game chat room, an esports tournament platform and a UI component library for designers.
+  era: frontend
+  branch: frontend
+- year: 2025–2026
+  title:
+    zh: 電腦科學碩士
+    en: MSc Computer Science
+  org:
+    zh: 英國伯明罕大學
+    en: University of Birmingham, UK
+  desc:
+    zh: 以 Distinction 畢業，碩士論文研究如何透過滑鼠軌跡跨遊戲偵測機器人，相關論文已投稿 ACM SAC 2027。
+    en: Graduated with Distinction. The dissertation studied cross-game bot detection from mouse trajectories, and a paper has been submitted to ACM SAC 2027.
+  era: data
+  branch: fullstack
+  from: frontend
+- year: 2026
+  title:
+    zh: 全端與資料
+    en: Full-stack and data
+  org:
+    zh: 個人專案
+    en: Personal projects
+  desc:
+    zh: 開發並上線影像地理定位工具 SpotClue，以及職缺分析與投遞追蹤平台 Job Sponsor Tracker。
+    en: Developed and launched SpotClue for image geolocation and Job Sponsor Tracker for job analysis and application tracking.
+  era: data
+  branch: fullstack
+  joins:
+    - frontend

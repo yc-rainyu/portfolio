@@ -1,13 +1,15 @@
 import { defineCollection } from 'astro:content';
-import { file, glob } from 'astro/loaders';
+import { file } from 'astro/loaders';
 import { z } from 'astro/zod';
 import { parse as parseYaml } from 'yaml';
+import { bilingualProjects } from './loaders/projects';
+import { localise } from './lib/content-source';
 
 const text = z.string().trim().min(1);
 
 
 const projects = defineCollection({
-  loader: glob({ pattern: '{zh,en}/*.md', base: './src/content/projects' }),
+  loader: bilingualProjects(),
   schema: ({ image }) =>
     z
       .strictObject({
@@ -59,10 +61,11 @@ const projects = defineCollection({
 
 
 /* Preserve the order defined in YAML */
-function orderedYaml(path: string) {
+function orderedYaml(path: string, lang?: 'zh' | 'en') {
   return file(path, {
     parser: (source) => {
-      const data: unknown = parseYaml(source);
+      const raw = parseYaml(source);
+      const data: unknown = lang ? localise(raw, lang) : raw;
       if (!Array.isArray(data)) {
         throw new Error(`${path} 的最外層必須是陣列`);
       }
@@ -92,11 +95,11 @@ const journeySchema = z.strictObject({
 });
 
 const journeyZh = defineCollection({
-  loader: orderedYaml('src/content/journey/zh.yaml'),
+  loader: orderedYaml('src/content/journey.yaml', 'zh'),
   schema: journeySchema,
 });
 const journeyEn = defineCollection({
-  loader: orderedYaml('src/content/journey/en.yaml'),
+  loader: orderedYaml('src/content/journey.yaml', 'en'),
   schema: journeySchema,
 });
 
@@ -140,11 +143,15 @@ const skillWeights = defineCollection({
 });
 
 
-const chapter = z.strictObject({ label: text, title: text });
+const chapter = z.strictObject({ label: text, title: text, nav: text.optional() });
 
 const site = defineCollection({
-  loader: glob({ pattern: '{zh,en}.yaml', base: './src/content/site' }),
+  loader: file('src/content/site.yaml', {
+    parser: (source) => Object.fromEntries(['zh', 'en'].map((lang) => [lang, localise(parseYaml(source), lang as 'zh' | 'en')])),
+  }),
   schema: z.strictObject({
+    values: z.strictObject({ years: z.number().int().min(1).max(99) }),
+
     meta: z.strictObject({ siteName: text, title: text, description: text }),
 
     nav: z.strictObject({
@@ -153,11 +160,6 @@ const site = defineCollection({
       skip: text,
       logo: text,
       home: text,
-      work: text,
-      journey: text,
-      skills: text,
-      index: text,
-      about: text,
     }),
 
     theme: z.strictObject({
@@ -222,7 +224,6 @@ const site = defineCollection({
     }),
 
     skills: z.strictObject({
-      note: text,
       legend: z.strictObject({ caption: text, levels: z.array(text).length(5), practices: text }),
     }),
 

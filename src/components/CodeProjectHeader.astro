@@ -1,0 +1,146 @@
+---
+import ProjectCover from './ProjectCover.astro';
+import Metrics from './Metrics.astro';
+import { formatYears, type Project, type SiteCopy } from '../lib/content';
+
+interface Props {
+  project: Project;
+  preview: Project;
+  copy: SiteCopy;
+  number: string;
+}
+
+const { project, preview, copy, number } = Astro.props;
+const bare = (url: string) => url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+const links = (['live', 'github', 'demo'] as const).flatMap((kind) => {
+  const href = project.links[kind];
+  return href ? [{ kind, href, label: copy.work.links[kind] }] : [];
+});
+const year = formatYears(project);
+const PEEK = 3;
+let count = 0;
+const no = () => String(++count).padStart(2, '0');
+const stack = project.stack;
+const num = {
+  open: no(),
+  comment: no(),
+  name: no(),
+  about: no(),
+  year: no(),
+  role: project.role ? no() : '',
+  status: no(),
+  linksOpen: links.length > 0 ? no() : '',
+  links: links.map(no),
+  linksClose: links.length > 0 ? no() : '',
+  stackOpen: stack.length > 0 ? no() : '',
+  stackItems: stack.length > 0 ? no() : '',
+  stackClose: stack.length > 0 ? no() : '',
+  close: no(),
+};
+---
+
+<div class="code-project" data-scroll-anchor="project-header">
+  <div class="editor-tab" aria-hidden="true">
+    <span class="editor-tab__path">projects /</span>
+    <span class="editor-tab__file"><span class="editor-tab__icon">M↓</span> {project.slug}.md</span>
+    <span class="editor-tab__index">{number}</span>
+  </div>
+
+  <div class:list={['code-project__grid', { 'code-project__grid--text': !preview.cover && project.metrics.length === 0 }]}>
+    <div class="project-source code-lines" data-code-lines data-scroll-anchor="project-intro" data-scroll-priority="1">
+      <p class="code__line"><span class="code__number" aria-hidden="true">{num.open}</span><span class="tok tok--keyword">const</span><span class="tok tok--plain"> project </span><span class="tok tok--punct" aria-hidden="true">= {'{'}</span></p>
+      <p class="code__line code__line--gap" style="--indent:1"><span class="code__number" aria-hidden="true">{num.comment}</span><span class="tok tok--comment">// {copy.work.categories[project.category]}</span></p>
+      <div class="code__line code__line--gap source-title" style="--indent:1"><span class="code__number" aria-hidden="true">{num.name}</span><span class="source-key" aria-hidden="true"><span class="tok tok--key">name</span><span class="tok tok--punct">:</span></span><h1>{project.title}</h1></div>
+      <div class="code__line code__line--gap source-summary" style="--indent:1"><span class="code__number" aria-hidden="true">{num.about}</span><span class="source-key" aria-hidden="true"><span class="tok tok--key">about</span><span class="tok tok--punct">:</span></span><p>{project.summary}</p></div>
+      <p class="code__line code__line--gap" style="--indent:1"><span class="code__number" aria-hidden="true">{num.year}</span><span class="tok tok--key">year</span><span class="tok tok--punct" aria-hidden="true">: </span><span class="tok tok--plain">{year}</span><span class="tok tok--punct" aria-hidden="true">,</span></p>
+      {project.role && <p class="code__line" style="--indent:1"><span class="code__number" aria-hidden="true">{num.role}</span><span class="tok tok--key">role</span><span class="tok tok--punct" aria-hidden="true">: '</span><span class="tok tok--string">{project.role}</span><span class="tok tok--punct" aria-hidden="true">',</span></p>}
+      <p class="code__line" style="--indent:1"><span class="code__number" aria-hidden="true">{num.status}</span><span class="tok tok--key">status</span><span class="tok tok--punct" aria-hidden="true">: '</span><span class="tok tok--string">{copy.work.status[project.status]}</span><span class="tok tok--punct" aria-hidden="true">',</span></p>
+      {links.length > 0 && <p class="code__line code__line--gap" style="--indent:1"><span class="code__number" aria-hidden="true">{num.linksOpen}</span><span class="tok tok--key">links</span><span class="tok tok--punct" aria-hidden="true">: {'{'}</span></p>}
+      {links.map((link, i) => <p class="code__line" style="--indent:2"><span class="code__number" aria-hidden="true">{num.links[i]}</span><span class="tok tok--key">{link.kind}</span><span class="tok tok--punct" aria-hidden="true">: '</span><a class="tok tok--string" href={link.href} target="_blank" rel="noopener" aria-label={`${bare(link.href)}（${link.label}）`}>{bare(link.href)}</a><span class="tok tok--punct" aria-hidden="true">',</span></p>)}
+      {links.length > 0 && <p class="code__line" style="--indent:1"><span class="code__number" aria-hidden="true">{num.linksClose}</span><span class="tok tok--punct" aria-hidden="true">{'},'}</span></p>}
+      {stack.length > 0 && <details class="code__fold" open data-scroll-anchor="project-details">
+        <summary class="code__line code__line--gap" style="--indent:1"><span class="code__number" aria-hidden="true">{num.stackOpen}</span><span class="code__fold-arrow" aria-hidden="true"></span><span class="tok tok--key">stack</span><span class="tok tok--punct" aria-hidden="true">: [</span><span class="code__fold-closed" aria-hidden="true">{stack.slice(0, PEEK).map((skill) => <><span class="tok tok--punct">'</span><span class="tok tok--string">{skill}</span><span class="tok tok--punct">', </span></>)}{stack.length > PEEK && <><span class="code__fold-more">⋯</span><span class="tok tok--punct"> </span></>}<span class="tok tok--punct">],</span></span></summary>
+        <div class="code__line" style="--indent:2"><span class="code__number" aria-hidden="true">{num.stackItems}</span><ul class="source-stack" aria-label={copy.work.fields.stack}>{stack.map((skill) => <li><span class="source-stack__skill"><span class="tok tok--punct" aria-hidden="true">'</span><span class="tok tok--string">{skill}</span><span class="tok tok--punct" aria-hidden="true">'</span></span><span class="tok tok--punct" aria-hidden="true">, </span></li>)}</ul></div>
+        <p class="code__line" style="--indent:1"><span class="code__number" aria-hidden="true">{num.stackClose}</span><span class="tok tok--punct" aria-hidden="true">],</span></p>
+      </details>}
+      <p class="code__line" data-active><span class="code__number" aria-hidden="true">{num.close}</span><span class="tok tok--punct" aria-hidden="true">{'};'}</span></p>
+    </div>
+
+    {(preview.cover || project.metrics.length > 0) && <div class="project-output">
+      {preview.cover && <div class="output-preview" data-scroll-anchor="project-cover">
+        <span class="output-preview__bar" aria-hidden="true"><span><span class="t-key">↳</span> preview</span></span>
+        <ProjectCover project={preview} number={number} loading="lazy" fit="contain" />
+      </div>}
+      {project.metrics.length > 0 && <div class:list={['output-results', { 'output-results--only': !preview.cover }]} data-scroll-anchor="project-metrics">
+        <p class="output-results__label" aria-hidden="true"><span class="t-key">↳</span> results</p>
+        <Metrics metrics={project.metrics} label={copy.work.fields.metrics} />
+      </div>}
+    </div>}
+  </div>
+</div>
+
+<script>
+  import { initCodeLines } from '../lib/code-lines';
+  initCodeLines();
+</script>
+
+<style>
+  .code-project { display: none; }
+  :global([data-theme='shachiku']) .code-project { display: block; }
+  .code-project { font-family: var(--font-mono); border-top: 1px solid var(--line); }
+  .editor-tab {
+    display: flex; align-items: center; gap: 1.25rem; min-height: 3rem;
+    border-bottom: 1px solid var(--line); color: var(--muted); font-size: .6875rem;
+  }
+  .editor-tab__path { padding-left: 1rem; }
+  .editor-tab__file { display: flex; align-items: center; gap: .625rem; align-self: stretch; padding: .75rem 1rem; border-bottom: 2px solid var(--a); color: var(--ink); background: var(--surface); overflow-wrap: anywhere; }
+  .editor-tab__icon { color: var(--a); font-size: .625rem; }
+  .editor-tab__index { margin-left: auto; padding-right: 1rem; font-size: .75rem; color: var(--a); }
+  .code-project__grid { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); gap: clamp(2rem, 4vw, 4rem); align-items: start; padding-block: 2.5rem 1.5rem; }
+  .code-project__grid--text { grid-template-columns: minmax(0, 1fr); max-width: 52rem; }
+  .project-source { padding-block: .25rem; border-inline-start: var(--line-width) solid var(--line); }
+  .source-key { display: block; font-size: .75rem; }
+  .source-title { margin-bottom: 1.125rem; }
+  .source-title .source-key { margin-bottom: .375rem; }
+  .source-title h1 { display: inline; font: 500 clamp(1.75rem, 2.9vw, 2.625rem)/1.25 var(--font-mono); letter-spacing: -.055em; color: var(--ink); text-wrap: pretty; word-break: keep-all; }
+  .source-summary { margin-bottom: .625rem; }
+  .source-summary .source-key { margin-bottom: .25rem; }
+  .source-summary p { display: inline; color: var(--b); line-height: 1.85; }
+  .source-summary p::before { content: "'"; color: var(--muted); }
+  .source-summary p::after { content: "',"; color: var(--muted); }
+  .source-stack, .source-stack li { display: inline; list-style: none; margin: 0; padding: 0; }
+  .source-stack__skill { white-space: nowrap; }
+  .t-key { color: var(--a); }
+  .project-output { min-width: 0; padding-top: .125rem; }
+  .output-preview { display: block; color: var(--muted); background: var(--surface); border: 1px solid var(--line); box-shadow: 0 1.5rem 3rem -2rem #000; }
+  .output-preview__bar { display: flex; justify-content: space-between; align-items: center; padding: .5rem .875rem; font-size: .6875rem; border-bottom: 1px solid var(--line); }
+  .output-preview:hover { border-color: var(--a); }
+  .output-preview :global(.project-image) { border: 0; background: var(--surface); }
+  .output-results { position: relative; margin: 1.25rem 0 0; }
+  .output-results__label { font-size: .6875rem; color: var(--muted); margin-bottom: .75rem; }
+  .output-results :global(.metrics) { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
+  .output-results :global(.metrics__item) { grid-column: auto; min-width: 0; gap: .375rem; padding: .875rem .625rem; background: var(--surface); border: 1px solid var(--line); border-top: 2px solid var(--a); }
+  .output-results :global(.metrics .metrics__item .metrics__value) { font: 500 clamp(1.125rem, 1.6vw, 1.5rem)/1.3 var(--font-mono); color: var(--ink); white-space: normal; overflow-wrap: anywhere; letter-spacing: -.04em; }
+  .output-results :global(.metrics .metrics__item--long .metrics__value) { font-size: 1rem; line-height: 1.5; letter-spacing: -.025em; text-wrap: pretty; }
+  .output-results :global(.metrics__label) { font-size: .6875rem; line-height: 1.65; }
+  .output-results :global(.metrics__note) { font-size: .625rem; line-height: 1.7; color: var(--muted); }
+  .output-results--only { margin-top: 1.25rem; padding: 1.25rem; background: var(--surface); border: 1px solid var(--line); }
+  .output-results--only :global(.metrics) { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .output-results--only :global(.metrics__item) { padding: 1.25rem 0; border: 0; border-top: 1px solid var(--line); background: transparent; }
+  .output-results--only :global(.metrics .metrics__item .metrics__value) { font-size: 2.25rem; }
+  .output-results--only :global(.metrics .metrics__item--long .metrics__value) { font-size: 1.5rem; }
+  .output-results--only :global(.metrics__label) { font-size: .75rem; }
+  .output-results--only :global(.metrics__note) { font-size: .6875rem; }
+  @media (max-width: 1023px) {
+    .code-project__grid { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+    .project-output { max-width: 42rem; }
+  }
+  @media (max-width: 540px) {
+    .editor-tab { gap: 0; }
+    .editor-tab__path { display: none; }
+    .editor-tab__file { min-width: 0; padding-inline: .625rem; }
+    .output-results :global(.metrics) { grid-template-columns: minmax(0, 1fr); }
+    .output-results :global(.metrics__item) { padding: 1rem; }
+  }
+  @media (max-width: 767px) { .project-source { --code-size: .9375rem; } }
+</style>
